@@ -3,10 +3,15 @@
 A lightweight, self-hosted web dashboard to manage local repositories and workflows. Built with a **FastAPI** backend and a modern **Glassmorphism** frontend.
 
 ## 🚀 Features
-- **Project Grid:** Auto-scans your project directory.
+- **Project Grid:** Auto-scans your project directory with Git status badges.
 - **Direct Launch:** Open any project in VS Code with a single click.
-- **Documentation Viewer:** (In-progress) Preview READMEs directly in the browser.
-- **Clean UI:** Dark-mode optimized for developers.
+- **Git Actions:** History, branches, pull, force reset, force clean — all in one modal.
+- **Worktree Manager:** Create, remove, and merge Git worktrees with visual status.
+- **Activity Stats:** Top repos, day-of-week chart, and commit streaks.
+- **Recent Files:** Hover over commit line to see files changed in recent commits.
+- **Custom Commands:** Define per-repo commands (test, build, deploy) and run them with one click.
+- **Documentation Viewer:** Preview READMEs directly in the browser.
+- **Clean UI:** Dark-mode optimized with glassmorphism design.
 
 ## 🛠️ Tech Stack
 - **Backend:** Python 3.12+ via `FastAPI`

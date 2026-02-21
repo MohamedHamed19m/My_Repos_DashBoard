@@ -53,6 +53,10 @@ The server runs on `http://127.0.0.1:8000` by default.
 | `POST /git/{name}/{action}` | Run git commands (pull, fetch, stash, stash-pop, reset, clean) |
 | `GET /git/{name}/log` | Get git commit history (structured JSON) |
 | `GET /git/{name}/branches` | Get latest 5 branches |
+| `GET /git/{name}/recent-files` | Get files changed in recent commits (M/A/D/R) |
+| `GET /commands/{name}` | Get saved custom commands for a repo |
+| `POST /commands/{name}` | Save custom commands for a repo |
+| `POST /commands/{name}/run` | Run a custom command |
 | `GET /wt/{name}/list` | List worktrees for a repo |
 | `GET /wt/{name}/default-suffix` | Get default chronological branch name |
 | `POST /wt/{name}/create` | Create new worktree + branch |
@@ -68,6 +72,8 @@ Single-file application with embedded CSS and JavaScript:
 
 **Key UI components:**
 - Project grid with Git status badges, worktree preview, action buttons
+- Recent files tooltip on hover (shows files changed in last 5 commits)
+- Custom commands panel per repo (edit and run repo-specific commands)
 - Worktree Manager modal with create/remove/merge functionality
 - Git Actions modal with history, branches, pull, force reset, force clean
 - Stats modal showing top repos, day-of-week activity, and streaks
@@ -86,6 +92,8 @@ Single-file application with embedded CSS and JavaScript:
 - **BASE_PATH configuration**: Update `BASE_PATH` in `main.py` line 33 to scan a different directory.
 - **Git worktree merge status**: The `get_merge_status()` function determines if a worktree's branch is FRESH (no divergence), MERGED (commits exist in parent), or NOT MERGED (unique commits).
 - **Git commands modal**: The git button opens a modal with safe operations (history, branches, pull) and dangerous operations (force reset, force clean). The branches endpoint returns up to 5 latest branches with current branch highlighting.
+- **Recent files tooltip**: Uses `git diff --name-status HEAD~5..HEAD` to get files changed in last 5 commits. Lazy-loaded on first hover and cached per session.
+- **Custom commands storage**: Stored in `BASE_PATH/commands.json` as `{"repo-name": [{"label": "test", "cmd": "npm test"}]}`. Commands run in the repo directory with output captured and displayed.
 
 ## Testing Changes
 
