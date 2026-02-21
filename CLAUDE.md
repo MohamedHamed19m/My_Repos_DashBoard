@@ -49,7 +49,9 @@ The server runs on `http://127.0.0.1:8000` by default.
 | `GET /open/{name}` | Open a repo in VS Code |
 | `GET /open-worktree?path=` | Open a worktree path in VS Code |
 | `GET /readme/{name}` | Fetch README.md content |
-| `POST /git/{name}/{action}` | Run git commands (pull, fetch, stash, stash-pop) |
+| `POST /git/{name}/{action}` | Run git commands (pull, fetch, stash, stash-pop, reset, clean) |
+| `GET /git/{name}/log` | Get git commit history (structured JSON) |
+| `GET /git/{name}/branches` | Get latest 5 branches |
 | `GET /wt/{name}/list` | List worktrees for a repo |
 | `GET /wt/{name}/default-suffix` | Get default chronological branch name |
 | `POST /wt/{name}/create` | Create new worktree + branch |
@@ -66,6 +68,7 @@ Single-file application with embedded CSS and JavaScript:
 **Key UI components:**
 - Project grid with Git status badges, worktree preview, action buttons
 - Worktree Manager modal with create/remove/merge functionality
+- Git Actions modal with history, branches, pull, force reset, force clean
 - README slide-out panel
 - Toast notifications
 
@@ -80,6 +83,7 @@ Single-file application with embedded CSS and JavaScript:
 - **No frontend build process**: Edit `index.html` directly and refresh the browser.
 - **BASE_PATH configuration**: Update `BASE_PATH` in `main.py` line 33 to scan a different directory.
 - **Git worktree merge status**: The `get_merge_status()` function determines if a worktree's branch is FRESH (no divergence), MERGED (commits exist in parent), or NOT MERGED (unique commits).
+- **Git commands modal**: The git button opens a modal with safe operations (history, branches, pull) and dangerous operations (force reset, force clean). The branches endpoint returns up to 5 latest branches with current branch highlighting.
 
 ## Testing Changes
 
