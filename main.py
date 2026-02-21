@@ -330,6 +330,141 @@ def git_branches(name: str, limit: int = 5):
     return {"branches": branches}
 
 
+@app.get("/stats")
+def get_stats(days: int = 7):
+    """
+    Get activity statistics across all repos.
+    Returns: repo activity ranking, day of week distribution, latest commit, longest streak.
+    """
+    from collections import defaultdict
+
+    folders = [
+        f for f in os.listdir(BASE_PATH)
+        if os.path.isdir(os.path.join(BASE_PATH, f)) and f != "my-dashboard"
+    ]
+
+    # Get activity per repo for the last N days
+    repo_activity = []
+    all_commits = []  # Store (timestamp, repo_name) for global stats
+
+    since_date = (datetime.now() - __import__('datetime').timedelta(days=days)).strftime("%Y-%m-%d")
+
+    for folder in folders:
+        repo_path = os.path.join(BASE_PATH, folder)
+        if not os.path.exists(os.path.join(repo_path, ".git")):
+            continue
+
+        # Get commits since date with timestamps
+        log_output = run_git(
+            ["log", f"--since={since_date}", "--pretty=format:%ct"],
+            repo_path
+        )
+
+        if log_output:
+            timestamps = [int(ts) for ts in log_output.splitlines() if ts.strip().isdigit()]
+            commit_count = len(timestamps)
+            if commit_count > 0:
+                repo_activity.append({
+                    "name": folder,
+                    "commits": commit_count
+                })
+                all_commits.extend([(ts, folder) for ts in timestamps])
+
+    # Sort by commit count (descending)
+    repo_activity.sort(key=lambda x: x["commits"], reverse=True)
+    top_repos = repo_activity[:5]
+
+    # Calculate day of week distribution
+    day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    day_counts = defaultdict(int)
+
+    for ts, _ in all_commits:
+        dt = datetime.fromtimestamp(ts)
+        day_counts[dt.weekday()] += 1
+
+    total_commits = len(all_commits)
+    day_distribution = []
+    if total_commits > 0:
+        most_active_day = day_names[max(day_counts.keys(), key=lambda k: day_counts[k])]
+        most_active_pct = round((max(day_counts.values()) / total_commits) * 100)
+
+        for day_idx in range(7):
+            day_distribution.append({
+                "day": day_names[day_idx],
+                "count": day_counts[day_idx],
+                "percentage": round((day_counts[day_idx] / total_commits) * 100) if total_commits > 0 else 0
+            })
+    else:
+        most_active_day = "No commits"
+        most_active_pct = 0
+
+    # Find most recent commit across all repos
+    latest_commit = None
+    latest_repo = None
+    if all_commits:
+        latest_ts, latest_repo = max(all_commits, key=lambda x: x[0])
+        latest_dt = datetime.fromtimestamp(latest_ts)
+        # Calculate relative time
+        now = datetime.now()
+        diff = now - latest_dt
+        if diff.seconds < 60:
+            latest_commit = f"{diff.seconds} seconds ago"
+        elif diff.seconds < 3600:
+            latest_commit = f"{diff.seconds // 60} minutes ago"
+        elif diff.seconds < 86400:
+            latest_commit = f"{diff.seconds // 3600} hours ago"
+        else:
+            latest_commit = f"{diff.days} days ago"
+
+    # Calculate longest streak (consecutive days with commits)
+    if all_commits:
+        # Get unique dates from all commits
+        unique_dates = set()
+        for ts, _ in all_commits:
+            dt = datetime.fromtimestamp(ts)
+            unique_dates.add(dt.date())
+
+        sorted_dates = sorted(unique_dates, reverse=True)
+
+        # Find longest streak
+        longest_streak = 1
+        current_streak = 1
+        streak_start_date = sorted_dates[0]
+
+        for i in range(1, len(sorted_dates)):
+            if (sorted_dates[i-1] - sorted_dates[i]).days == 1:
+                current_streak += 1
+            else:
+                if current_streak > longest_streak:
+                    longest_streak = current_streak
+                    streak_start_date = sorted_dates[i-1]
+                current_streak = 1
+
+        # Check final streak
+        if current_streak > longest_streak:
+            longest_streak = current_streak
+            streak_start_date = sorted_dates[-1]
+
+        streak_end_date = streak_start_date + __import__('datetime').timedelta(days=longest_streak - 1)
+    else:
+        longest_streak = 0
+        streak_start_date = None
+        streak_end_date = None
+
+    return {
+        "top_repos": top_repos,
+        "day_distribution": day_distribution,
+        "most_active_day": most_active_day,
+        "most_active_percentage": most_active_pct,
+        "latest_commit": latest_commit,
+        "latest_commit_repo": latest_repo,
+        "longest_streak": longest_streak,
+        "streak_start": streak_start_date.isoformat() if streak_start_date else None,
+        "streak_end": streak_end_date.isoformat() if streak_end_date else None,
+        "days_period": days
+    }
+
+
 # ── WORKTREE MANAGER ENDPOINTS ────────────────────────────────────────────────
 
 @app.get("/wt/{name}/list")

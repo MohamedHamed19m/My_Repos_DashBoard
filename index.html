@@ -427,6 +427,88 @@
     .git-msg { color: var(--text); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .git-meta { color: var(--muted); font-size: 0.65rem; flex-shrink: 0; }
 
+    /* Stats Modal */
+    .stats-loading { display: flex; align-items: center; gap: 10px; justify-content: center; padding: 40px; color: var(--muted); font-family: var(--mono); font-size: 0.75rem; }
+    .stats-section { margin-bottom: 24px; }
+    .stats-section-title { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
+    .activity-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+    }
+    .activity-item:last-child { margin-bottom: 0; }
+    .activity-name { color: var(--text); flex: 1; font-weight: 600; }
+    .activity-bar-wrap {
+      display: flex; align-items: center; gap: 8px;
+      flex: 1; max-width: 200px;
+    }
+    .activity-bar {
+      height: 6px;
+      background: var(--surface);
+      border-radius: 3px;
+      flex: 1;
+      overflow: hidden;
+    }
+    .activity-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--purple));
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+    .activity-count { color: var(--muted); font-size: 0.7rem; min-width: 40px; text-align: right; }
+    .insight-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+    }
+    .insight-row:last-child { margin-bottom: 0; }
+    .insight-label { color: var(--muted); min-width: 120px; }
+    .insight-value { color: var(--text); font-weight: 600; }
+    .insight-highlight { color: var(--green); }
+    .day-chart {
+      display: flex; gap: 6px;
+      height: 80px;
+      padding: 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .day-bar {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 4px;
+    }
+    .day-bar-fill {
+      width: 100%;
+      background: var(--accent);
+      border-radius: 3px 3px 0 0;
+      min-height: 4px;
+      transition: height 0.3s ease;
+      opacity: 0.7;
+    }
+    .day-bar-fill:hover { opacity: 1; }
+    .day-bar-label {
+      font-family: var(--mono);
+      font-size: 0.55rem;
+      color: var(--muted);
+      transform: rotate(-45deg);
+      transform-origin: center top;
+      white-space: nowrap;
+    }
+
     /* ── README PANEL ── */
     #readme-panel {
       position: fixed; top: 0; right: -680px; width: 660px; height: 100vh;
@@ -506,6 +588,10 @@
     <button class="icon-btn" id="refresh-btn" onclick="loadProjects()">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
       refresh
+    </button>
+    <button class="icon-btn" onclick="openStatsModal()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+      stats
     </button>
   </div>
 </header>
@@ -607,6 +693,25 @@
         <div class="wt-section-label">Result</div>
         <pre id="git-result-output" style="background:var(--surface2);padding:12px;border-radius:8px;font-size:0.7rem;max-height:200px;overflow:auto;"></pre>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── STATS MODAL ── -->
+<div class="modal-overlay" id="stats-overlay" onclick="handleStatsOverlayClick(event)">
+  <div class="wt-modal" id="stats-modal" style="width: 680px;">
+    <div class="modal-header">
+      <div class="modal-title-wrap">
+        <div class="modal-icon" style="background: linear-gradient(135deg, rgba(79,142,247,0.3), rgba(62,207,142,0.3));">📊</div>
+        <div>
+          <div class="modal-title">Activity Stats</div>
+          <div class="modal-subtitle">Last 7 days</div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeStatsModal()">✕</button>
+    </div>
+    <div class="modal-body" id="stats-modal-body">
+      <div class="stats-loading"><div class="spinner"></div> loading stats…</div>
     </div>
   </div>
 </div>
@@ -1229,6 +1334,119 @@ async function gitModalAction(action) {
   }
 }
 
+// ═══════════════════════════════════════════════════
+// STATS MODAL
+// ═══════════════════════════════════════════════════
+function openStatsModal() {
+  document.getElementById('stats-overlay').classList.add('open');
+  loadStats();
+}
+
+function closeStatsModal() {
+  document.getElementById('stats-overlay').classList.remove('open');
+}
+
+function handleStatsOverlayClick(e) {
+  if (e.target === document.getElementById('stats-overlay')) closeStatsModal();
+}
+
+async function loadStats() {
+  const modalBody = document.getElementById('stats-modal-body');
+  modalBody.innerHTML = '<div class="stats-loading"><div class="spinner"></div> loading stats…</div>';
+
+  try {
+    const res = await fetch(`${API}/stats`);
+    const data = await res.json();
+    renderStats(data);
+  } catch (e) {
+    modalBody.innerHTML = '<div style="padding:20px;color:var(--red);font-family:var(--mono);font-size:0.75rem;">Failed to load stats</div>';
+  }
+}
+
+function renderStats(data) {
+  const modalBody = document.getElementById('stats-modal-body');
+
+  let html = '';
+
+  // Time Insights Section
+  html += `
+    <div class="stats-section">
+      <div class="stats-section-title">🕐 Time Insights</div>
+      <div class="insight-row">
+        <span class="insight-label">Most active day</span>
+        <span class="insight-value insight-highlight">${data.most_active_day} (${data.most_active_percentage}%)</span>
+      </div>
+      <div class="insight-row">
+        <span class="insight-label">Last commit</span>
+        <span class="insight-value">${data.latest_commit || 'No commits'} ${data.latest_commit_repo ? `in <span style="color:var(--accent)">${esc(data.latest_commit_repo)}</span>` : ''}</span>
+      </div>
+      <div class="insight-row">
+        <span class="insight-label">Longest streak</span>
+        <span class="insight-value">${data.longest_streak} days ${data.streak_start ? `<span style="color:var(--muted);font-size:0.65rem;">(${formatDate(data.streak_start)} – ${formatDate(data.streak_end)})</span>` : ''}</span>
+      </div>
+    </div>
+  `;
+
+  // Day Chart
+  if (data.day_distribution && data.day_distribution.length > 0) {
+    const maxCount = Math.max(...data.day_distribution.map(d => d.count));
+    html += `
+      <div class="stats-section">
+        <div class="stats-section-title">Commits by Day</div>
+        <div class="day-chart">
+          ${data.day_distribution.map(d => {
+            const height = maxCount > 0 ? (d.count / maxCount) * 60 : 0;
+            return `
+              <div class="day-bar">
+                <div class="day-bar-fill" style="height:${Math.max(height, 4)}px;"></div>
+                <div class="day-bar-label">${d.day.slice(0,3)}</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  // Activity Ranking Section
+  html += `
+    <div class="stats-section">
+      <div class="stats-section-title">📈 Top Repos (Last ${data.days_period} Days)</div>
+  `;
+
+  if (data.top_repos && data.top_repos.length > 0) {
+    const maxCommits = data.top_repos[0].commits;
+    html += data.top_repos.map((repo, i) => {
+      const barWidth = (repo.commits / maxCommits) * 100;
+      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '  ';
+      return `
+        <div class="activity-item">
+          <span style="font-size:0.9rem;">${medal}</span>
+          <span class="activity-name">${esc(repo.name)}</span>
+          <div class="activity-bar-wrap">
+            <div class="activity-bar">
+              <div class="activity-bar-fill" style="width:${barWidth}%"></div>
+            </div>
+            <span class="activity-count">${repo.commits}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } else {
+    html += '<div style="padding:12px;color:var(--muted);font-family:var(--mono);font-size:0.7rem;">No commits in the last ' + data.days_period + ' days</div>';
+  }
+
+  html += '</div>';
+
+  modalBody.innerHTML = html;
+}
+
+function formatDate(isoDate) {
+  if (!isoDate) return '';
+  const d = new Date(isoDate);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
 function closePanel() {
   document.getElementById('readme-panel').classList.remove('open');
   document.getElementById('backdrop').classList.remove('show');
@@ -1298,6 +1516,8 @@ document.addEventListener('keydown', e => {
       else closeWTModal();
     } else if (document.getElementById('git-overlay').classList.contains('open')) {
       closeGitModal();
+    } else if (document.getElementById('stats-overlay').classList.contains('open')) {
+      closeStatsModal();
     } else {
       closePanel();
     }

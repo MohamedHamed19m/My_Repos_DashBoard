@@ -46,6 +46,7 @@ The server runs on `http://127.0.0.1:8000` by default.
 | Endpoint | Purpose |
 |----------|---------|
 | `GET /projects` | Scan BASE_PATH and return all repos with Git info |
+| `GET /stats` | Get activity statistics (top repos, day distribution, streaks) |
 | `GET /open/{name}` | Open a repo in VS Code |
 | `GET /open-worktree?path=` | Open a worktree path in VS Code |
 | `GET /readme/{name}` | Fetch README.md content |
@@ -69,6 +70,7 @@ Single-file application with embedded CSS and JavaScript:
 - Project grid with Git status badges, worktree preview, action buttons
 - Worktree Manager modal with create/remove/merge functionality
 - Git Actions modal with history, branches, pull, force reset, force clean
+- Stats modal showing top repos, day-of-week activity, and streaks
 - README slide-out panel
 - Toast notifications
 
