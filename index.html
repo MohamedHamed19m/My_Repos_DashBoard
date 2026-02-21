@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Worktree Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Berkeley+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #0a0b0d;
+      --surface:   #111318;
+      --surface2:  #181c24;
+      --surface3:  #1e2535;
+      --border:    #1f2535;
+      --border2:   #2a3148;
+      --text:      #c8cfe0;
+      --muted:     #4a5470;
+      --accent:    #4f8ef7;
+      --green:     #3ecf8e;
+      --yellow:    #f5c842;
+      --red:       #f25f5c;
+      --purple:    #a78bfa;
+      --cyan:      #22d3ee;
+      --mono:      'Berkeley Mono', 'Fira Code', monospace;
+      --sans:      'DM Sans', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 40px 40px;
+      opacity: 0.22;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: relative; z-index: 10;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 26px 40px 22px;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo { display: flex; align-items: center; gap: 14px; }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--purple));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .logo-text { font-family: var(--mono); font-size: 1rem; color: #fff; letter-spacing: -0.02em; }
+    .logo-sub  { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); margin-top: 1px; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .stats-pill {
+      font-family: var(--mono); font-size: 0.7rem;
+      color: var(--muted); background: var(--surface);
+      border: 1px solid var(--border); border-radius: 20px;
+      padding: 5px 14px; display: flex; gap: 14px;
+    }
+    .stats-pill span { color: var(--text); }
+    .search-wrap { position: relative; display: flex; align-items: center; }
+    .search-wrap svg { position: absolute; left: 10px; opacity: 0.4; pointer-events: none; }
+    #search {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 7px 14px 7px 34px;
+      color: var(--text); font-family: var(--mono); font-size: 0.78rem;
+      width: 200px; outline: none; transition: border-color 0.2s;
+    }
+    #search:focus { border-color: var(--accent); }
+    .icon-btn {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 7px 13px; color: var(--muted);
+      font-family: var(--mono); font-size: 0.75rem; cursor: pointer;
+      transition: all 0.2s; display: flex; align-items: center; gap: 6px;
+    }
+    .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .icon-btn.spinning svg { animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── FILTER BAR ── */
+    .filter-bar {
+      position: relative; z-index: 10;
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px 40px; border-bottom: 1px solid var(--border);
+    }
+    .filter-label { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-right: 4px; }
+    .filter-btn {
+      font-family: var(--mono); font-size: 0.7rem; padding: 4px 12px;
+      border-radius: 5px; border: 1px solid var(--border);
+      background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s;
+    }
+    .filter-btn:hover { background: var(--surface2); border-color: var(--border2); color: var(--text); }
+    .filter-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(79,142,247,0.06); }
+
+    /* ── GRID ── */
+    main { position: relative; z-index: 5; padding: 28px 40px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+      animation: fadeUp 0.35s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .card:hover { transform: translateY(-3px); border-color: var(--border2); box-shadow: 0 10px 36px rgba(0,0,0,0.5); }
+    .card-status-bar { height: 3px; width: 100%; }
+    .status-clean .card-status-bar { background: var(--green); }
+    .status-dirty .card-status-bar { background: linear-gradient(90deg, var(--yellow), var(--red)); }
+    .status-nogit .card-status-bar { background: var(--border2); }
+    .card-body { padding: 15px 17px 13px; }
+    .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 9px; }
+    .repo-name { font-family: var(--mono); font-size: 0.9rem; color: #fff; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .badge-row { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; flex-shrink: 0; }
+    .badge { font-family: var(--mono); font-size: 0.58rem; padding: 2px 7px; border-radius: 4px; font-weight: 700; white-space: nowrap; }
+    .badge-branch  { background: rgba(79,142,247,0.12);  color: var(--accent);  border: 1px solid rgba(79,142,247,0.25); }
+    .badge-dirty   { background: rgba(245,200,66,0.1);   color: var(--yellow);  border: 1px solid rgba(245,200,66,0.25); }
+    .badge-clean   { background: rgba(62,207,142,0.1);   color: var(--green);   border: 1px solid rgba(62,207,142,0.25); }
+    .badge-ahead   { background: rgba(167,139,250,0.1);  color: var(--purple);  border: 1px solid rgba(167,139,250,0.25); }
+    .badge-behind  { background: rgba(242,95,92,0.1);    color: var(--red);     border: 1px solid rgba(242,95,92,0.25); }
+    .badge-stash   { background: rgba(79,142,247,0.07);  color: var(--muted);   border: 1px solid var(--border2); }
+    .commit-line { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 0.67rem; color: var(--muted); margin-bottom: 11px; min-height: 18px; }
+    .commit-hash { color: var(--border2); flex-shrink: 0; }
+    .commit-msg  { color: var(--text); opacity: 0.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .commit-time { flex-shrink: 0; margin-left: auto; }
+    .diff-stats  { display: flex; gap: 10px; margin-bottom: 11px; font-family: var(--mono); font-size: 0.64rem; }
+    .diff-item   { display: flex; align-items: center; gap: 4px; }
+    .diff-dot    { width: 6px; height: 6px; border-radius: 50%; }
+    .diff-staged    .diff-dot { background: var(--green); }
+    .diff-unstaged  .diff-dot { background: var(--yellow); }
+    .diff-untracked .diff-dot { background: var(--muted); }
+    .diff-label { color: var(--muted); }
+    .diff-count { color: var(--text); }
+
+    /* Compact worktree preview in card */
+    .wt-preview {
+      border-top: 1px solid var(--border);
+      margin-top: 10px; padding-top: 9px;
+    }
+    .wt-preview-row {
+      display: flex; align-items: center; gap: 7px;
+      font-family: var(--mono); font-size: 0.65rem;
+      color: var(--muted); margin-bottom: 3px;
+    }
+    .wt-preview-branch { color: var(--accent); }
+    .wt-status-dot {
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+    }
+    .wt-s-FRESH      { background: var(--cyan); }
+    .wt-s-MERGED     { background: var(--green); }
+    .wt-s-NOT-MERGED { background: var(--yellow); }
+    .wt-s-DETACHED   { background: var(--red); }
+    .wt-s-NA         { background: var(--muted); }
+    .wt-more { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); margin-top: 2px; }
+
+    /* Card actions */
+    .card-actions { display: flex; gap: 6px; margin-top: 12px; }
+    .action-btn {
+      flex: 1; padding: 6px 8px; border-radius: 7px;
+      border: 1px solid var(--border); background: var(--surface2);
+      color: var(--muted); font-family: var(--mono); font-size: 0.67rem;
+      cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+    }
+    .action-btn:hover { border-color: var(--border2); color: var(--text); background: var(--surface3); }
+    .action-btn.primary { border-color: rgba(79,142,247,0.3); color: var(--accent); }
+    .action-btn.primary:hover { background: rgba(79,142,247,0.1); border-color: var(--accent); }
+    .action-btn.wt-btn { border-color: rgba(167,139,250,0.3); color: var(--purple); }
+    .action-btn.wt-btn:hover { background: rgba(167,139,250,0.1); border-color: var(--purple); }
+
+    /* ── WORKTREE MANAGER MODAL ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+      z-index: 500; align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .wt-modal {
+      background: var(--surface); border: 1px solid var(--border2);
+      border-radius: 16px; width: 780px; max-width: 95vw;
+      max-height: 88vh; display: flex; flex-direction: column;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+      animation: modalIn 0.25s cubic-bezier(0.4,0,0.2,1);
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.95) translateY(20px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 22px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .modal-title-wrap { display: flex; align-items: center; gap: 12px; }
+    .modal-icon {
+      width: 30px; height: 30px; border-radius: 7px;
+      background: linear-gradient(135deg, rgba(167,139,250,0.3), rgba(79,142,247,0.3));
+      display: flex; align-items: center; justify-content: center; font-size: 14px;
+    }
+    .modal-title { font-family: var(--mono); font-size: 0.85rem; color: #fff; }
+    .modal-subtitle { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); margin-top: 1px; }
+    .modal-close {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 7px; color: var(--muted); width: 28px; height: 28px;
+      cursor: pointer; font-size: 0.9rem; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .modal-close:hover { color: #fff; border-color: var(--border2); }
+
+    .modal-body { flex: 1; overflow-y: auto; padding: 20px 22px; }
+
+    /* Parent branch context bar */
+    .context-bar {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 14px; margin-bottom: 18px;
+      font-family: var(--mono); font-size: 0.72rem;
+    }
+    .context-label { color: var(--muted); }
+    .context-branch { color: var(--green); font-weight: 700; }
+    .context-sha { color: var(--muted); }
+
+    /* Create form */
+    .create-section {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 15px 16px; margin-bottom: 18px;
+    }
+    .create-header {
+      font-family: var(--mono); font-size: 0.65rem; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px;
+    }
+    .create-row { display: flex; gap: 8px; align-items: center; }
+    .create-input {
+      flex: 1; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 7px; padding: 8px 12px;
+      color: var(--text); font-family: var(--mono); font-size: 0.78rem;
+      outline: none; transition: border-color 0.2s;
+    }
+    .create-input:focus { border-color: var(--purple); }
+    .create-btn {
+      background: rgba(167,139,250,0.15); border: 1px solid rgba(167,139,250,0.35);
+      border-radius: 7px; padding: 8px 16px; color: var(--purple);
+      font-family: var(--mono); font-size: 0.75rem; font-weight: 700;
+      cursor: pointer; transition: all 0.15s; white-space: nowrap;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .create-btn:hover { background: rgba(167,139,250,0.25); border-color: var(--purple); }
+    .create-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .create-hint { font-family: var(--mono); font-size: 0.62rem; color: var(--muted); margin-top: 7px; }
+
+    /* Worktree table */
+    .wt-section-label {
+      font-family: var(--mono); font-size: 0.65rem; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px;
+    }
+    .wt-table { width: 100%; border-collapse: collapse; }
+    .wt-table th {
+      font-family: var(--mono); font-size: 0.62rem; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.08em;
+      text-align: left; padding: 0 10px 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .wt-row {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+    .wt-row:last-child { border-bottom: none; }
+    .wt-row:hover { background: var(--surface2); }
+    .wt-row.is-main { opacity: 0.6; }
+    .wt-cell {
+      padding: 10px 10px; vertical-align: middle;
+      font-family: var(--mono); font-size: 0.72rem;
+    }
+    .wt-cell-branch { color: var(--accent); font-weight: 700; }
+    .wt-cell-path   { color: var(--muted); font-size: 0.64rem; }
+    .wt-cell-sha    { color: var(--border2); }
+    .wt-cell-age    { color: var(--muted); text-align: right; }
+
+    /* Status badge in table */
+    .wt-status {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-family: var(--mono); font-size: 0.62rem;
+      padding: 2px 8px; border-radius: 4px; font-weight: 700;
+    }
+    .wt-status-dot-sm { width: 5px; height: 5px; border-radius: 50%; }
+    .s-FRESH      { background: rgba(34,211,238,0.1);  color: var(--cyan);   border: 1px solid rgba(34,211,238,0.25); }
+    .s-MERGED     { background: rgba(62,207,142,0.1);  color: var(--green);  border: 1px solid rgba(62,207,142,0.25); }
+    .s-NOT-MERGED { background: rgba(245,200,66,0.1);  color: var(--yellow); border: 1px solid rgba(245,200,66,0.25); }
+    .s-DETACHED   { background: rgba(242,95,92,0.1);   color: var(--red);    border: 1px solid rgba(242,95,92,0.25); }
+    .s-NA         { background: rgba(74,84,112,0.1);   color: var(--muted);  border: 1px solid var(--border); }
+    .s-ERROR      { background: rgba(242,95,92,0.1);   color: var(--red);    border: 1px solid rgba(242,95,92,0.25); }
+    .dot-FRESH      { background: var(--cyan); }
+    .dot-MERGED     { background: var(--green); }
+    .dot-NOT-MERGED { background: var(--yellow); }
+    .dot-DETACHED   { background: var(--red); }
+    .dot-NA         { background: var(--muted); }
+    .dot-ERROR      { background: var(--red); }
+
+    /* Action cell in table */
+    .wt-actions-cell { display: flex; gap: 5px; justify-content: flex-end; }
+    .wt-action {
+      background: transparent; border: 1px solid var(--border);
+      border-radius: 5px; padding: 3px 10px;
+      font-family: var(--mono); font-size: 0.63rem; color: var(--muted);
+      cursor: pointer; transition: all 0.15s; white-space: nowrap;
+    }
+    .wt-action:hover          { border-color: var(--border2); color: var(--text); background: var(--surface3); }
+    .wt-action.wt-open:hover  { border-color: var(--accent); color: var(--accent); }
+    .wt-action.wt-merge:hover { border-color: var(--green);  color: var(--green); }
+    .wt-action.wt-del:hover   { border-color: var(--red);    color: var(--red); }
+
+    /* Merge / remove confirm panels */
+    .confirm-panel {
+      background: var(--surface2); border: 1px solid var(--border2);
+      border-radius: 10px; padding: 16px 18px; margin-top: 16px;
+    }
+    .confirm-title { font-family: var(--mono); font-size: 0.8rem; color: #fff; margin-bottom: 10px; }
+    .confirm-detail { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); margin-bottom: 14px; line-height: 1.6; }
+    .confirm-detail strong { color: var(--text); }
+    .confirm-warn { color: var(--yellow); font-size: 0.68rem; font-family: var(--mono); margin-bottom: 12px; }
+    .checkbox-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; font-family: var(--mono); font-size: 0.72rem; color: var(--muted); cursor: pointer; }
+    .checkbox-row input { accent-color: var(--purple); cursor: pointer; }
+    .confirm-btns { display: flex; gap: 8px; }
+    .btn-confirm {
+      padding: 7px 18px; border-radius: 7px; font-family: var(--mono);
+      font-size: 0.73rem; font-weight: 700; cursor: pointer; transition: all 0.15s;
+    }
+    .btn-cancel  { background: var(--surface3); border: 1px solid var(--border2); color: var(--muted); }
+    .btn-cancel:hover { color: var(--text); }
+    .btn-danger  { background: rgba(242,95,92,0.15); border: 1px solid rgba(242,95,92,0.35); color: var(--red); }
+    .btn-danger:hover { background: rgba(242,95,92,0.25); }
+    .btn-success { background: rgba(62,207,142,0.15); border: 1px solid rgba(62,207,142,0.35); color: var(--green); }
+    .btn-success:hover { background: rgba(62,207,142,0.25); }
+
+    /* Empty state */
+    .wt-empty { text-align: center; padding: 32px; font-family: var(--mono); font-size: 0.75rem; color: var(--muted); }
+
+    /* Loading row */
+    .wt-loading { display: flex; align-items: center; gap: 10px; padding: 24px 0; font-family: var(--mono); font-size: 0.75rem; color: var(--muted); justify-content: center; }
+
+    /* ── README PANEL ── */
+    #readme-panel {
+      position: fixed; top: 0; right: -680px; width: 660px; height: 100vh;
+      background: var(--surface); border-left: 1px solid var(--border2);
+      z-index: 600; display: flex; flex-direction: column;
+      transition: right 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: -20px 0 60px rgba(0,0,0,0.6);
+    }
+    #readme-panel.open { right: 0; }
+    .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .panel-title { font-family: var(--mono); font-size: 0.8rem; color: #fff; }
+    #panel-close { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--muted); width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+    #panel-close:hover { color: #fff; border-color: var(--border2); }
+    #readme-content { flex: 1; overflow-y: auto; padding: 24px 26px; font-family: var(--sans); font-size: 0.87rem; line-height: 1.75; color: var(--text); }
+    #readme-content h1, #readme-content h2, #readme-content h3 { font-family: var(--mono); color: #fff; margin: 1.4em 0 0.5em; font-weight: 700; }
+    #readme-content h1 { font-size: 1.25rem; border-bottom: 1px solid var(--border); padding-bottom: 0.4em; }
+    #readme-content h2 { font-size: 0.95rem; }
+    #readme-content h3 { font-size: 0.82rem; color: var(--accent); }
+    #readme-content code { font-family: var(--mono); background: var(--surface2); padding: 1px 6px; border-radius: 4px; font-size: 0.82em; color: var(--green); }
+    #readme-content pre { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 14px; overflow-x: auto; margin: 1em 0; }
+    #readme-content pre code { background: none; padding: 0; font-size: 0.79rem; color: var(--text); }
+    #readme-content a { color: var(--accent); }
+    #readme-content p { margin-bottom: 0.8em; }
+    #readme-content ul, #readme-content ol { margin: 0.5em 0 0.8em 1.4em; }
+    #readme-content li { margin-bottom: 0.2em; }
+    #readme-content blockquote { border-left: 3px solid var(--border2); padding-left: 12px; color: var(--muted); margin: 1em 0; }
+    #readme-content hr { border: none; border-top: 1px solid var(--border); margin: 1.4em 0; }
+
+    /* ── BACKDROP ── */
+    #backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 590; backdrop-filter: blur(2px); }
+    #backdrop.show { display: block; }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed; bottom: 28px; left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background: var(--surface2); border: 1px solid var(--border2);
+      border-radius: 8px; padding: 9px 18px;
+      font-family: var(--mono); font-size: 0.74rem; color: var(--text);
+      z-index: 9999; opacity: 0; transition: all 0.22s; pointer-events: none;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #toast.ok  { border-color: rgba(62,207,142,0.4); color: var(--green); }
+    #toast.err { border-color: rgba(242,95,92,0.4);  color: var(--red); }
+
+    /* ── LOADING / EMPTY ── */
+    .loading { grid-column: 1/-1; display: flex; align-items: center; justify-content: center; padding: 80px; font-family: var(--mono); color: var(--muted); font-size: 0.8rem; gap: 12px; }
+    .spinner { width: 16px; height: 16px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+    .empty { grid-column: 1/-1; text-align: center; padding: 80px; font-family: var(--mono); color: var(--muted); font-size: 0.8rem; }
+
+    scrollbar-width: thin;
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">⌥</div>
+    <div>
+      <div class="logo-text">worktree</div>
+      <div class="logo-sub">local repo dashboard</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="stats-pill">
+      <span id="stat-total">—</span> repos &nbsp;·&nbsp;
+      <span id="stat-dirty">—</span> dirty &nbsp;·&nbsp;
+      <span id="stat-wt">—</span> worktrees
+    </div>
+    <div class="search-wrap">
+      <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="9" r="6"/><line x1="13.5" y1="13.5" x2="18" y2="18"/></svg>
+      <input id="search" type="text" placeholder="filter repos…" autocomplete="off">
+    </div>
+    <button class="icon-btn" id="refresh-btn" onclick="loadProjects()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+      refresh
+    </button>
+  </div>
+</header>
+
+<div class="filter-bar">
+  <span class="filter-label">filter</span>
+  <button class="filter-btn active" data-filter="all">all</button>
+  <button class="filter-btn" data-filter="dirty">dirty</button>
+  <button class="filter-btn" data-filter="clean">clean</button>
+  <button class="filter-btn" data-filter="worktrees">has worktrees</button>
+  <button class="filter-btn" data-filter="nogit">no git</button>
+</div>
+
+<main>
+  <div class="grid" id="grid">
+    <div class="loading"><div class="spinner"></div> loading repos…</div>
+  </div>
+</main>
+
+<!-- ── WORKTREE MANAGER MODAL ── -->
+<div class="modal-overlay" id="wt-overlay" onclick="handleOverlayClick(event)">
+  <div class="wt-modal" id="wt-modal">
+    <div class="modal-header">
+      <div class="modal-title-wrap">
+        <div class="modal-icon">⎇</div>
+        <div>
+          <div class="modal-title" id="wt-modal-title">Worktree Manager</div>
+          <div class="modal-subtitle" id="wt-modal-sub">—</div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeWTModal()">✕</button>
+    </div>
+    <div class="modal-body" id="wt-modal-body">
+      <div class="wt-loading"><div class="spinner"></div> loading worktrees…</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── README PANEL ── -->
+<div id="backdrop" onclick="closePanel()"></div>
+<div id="readme-panel">
+  <div class="panel-header">
+    <div class="panel-title" id="panel-title">README.md</div>
+    <button id="panel-close" onclick="closePanel()">✕</button>
+  </div>
+  <div id="readme-content"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API = 'http://127.0.0.1:8000';
+let allProjects = [];
+let activeFilter = 'all';
+let wtRepoName = '';      // which repo the modal is open for
+let wtData = [];          // cached worktree list for modal
+let confirmMode = null;   // 'remove' | 'merge' | null
+let confirmTarget = null; // the worktree object being actioned
+
+// ═══════════════════════════════════════════════════
+// DASHBOARD LOAD
+// ═══════════════════════════════════════════════════
+async function loadProjects() {
+  const btn = document.getElementById('refresh-btn');
+  btn.classList.add('spinning');
+  document.getElementById('grid').innerHTML = `<div class="loading"><div class="spinner"></div> loading repos…</div>`;
+  try {
+    const res = await fetch(`${API}/projects`);
+    const data = await res.json();
+    allProjects = data.projects;
+    updateStats();
+    renderGrid();
+  } catch (e) {
+    document.getElementById('grid').innerHTML = `<div class="empty">⚠ Cannot reach backend — is uvicorn running?</div>`;
+  } finally {
+    btn.classList.remove('spinning');
+  }
+}
+
+function updateStats() {
+  const dirty = allProjects.filter(p => p.git?.is_dirty).length;
+  const wtCount = allProjects.reduce((acc, p) => acc + (p.git?.worktrees?.length || 0), 0);
+  document.getElementById('stat-total').textContent = allProjects.length;
+  document.getElementById('stat-dirty').textContent = dirty;
+  document.getElementById('stat-wt').textContent = wtCount;
+}
+
+function renderGrid() {
+  const query = document.getElementById('search').value.toLowerCase();
+  let projects = allProjects.filter(p => p.name.toLowerCase().includes(query));
+  if (activeFilter === 'dirty')     projects = projects.filter(p => p.git?.is_dirty);
+  if (activeFilter === 'clean')     projects = projects.filter(p => p.git && !p.git.is_dirty);
+  if (activeFilter === 'worktrees') projects = projects.filter(p => (p.git?.worktrees?.length || 0) > 1);
+  if (activeFilter === 'nogit')     projects = projects.filter(p => !p.git);
+
+  const grid = document.getElementById('grid');
+  if (!projects.length) { grid.innerHTML = `<div class="empty">no repos match</div>`; return; }
+  grid.innerHTML = projects.map((p, i) => buildCard(p, i)).join('');
+}
+
+function buildCard(p, i) {
+  const g = p.git;
+  const statusClass = !g ? 'status-nogit' : (g.is_dirty ? 'status-dirty' : 'status-clean');
+  const delay = Math.min(i * 35, 380);
+
+  let badges = '';
+  if (g) {
+    badges += `<span class="badge badge-branch">⎇ ${esc(g.branch)}</span>`;
+    if (g.is_dirty) badges += `<span class="badge badge-dirty">● dirty</span>`;
+    else            badges += `<span class="badge badge-clean">✓ clean</span>`;
+    if (g.ahead  > 0) badges += `<span class="badge badge-ahead">↑${g.ahead}</span>`;
+    if (g.behind > 0) badges += `<span class="badge badge-behind">↓${g.behind}</span>`;
+    if (g.stash_count > 0) badges += `<span class="badge badge-stash">stash:${g.stash_count}</span>`;
+  }
+
+  let commitLine = g?.last_msg ? `
+    <div class="commit-line">
+      <span class="commit-hash">${esc(g.last_hash)}</span>
+      <span class="commit-msg">${esc(g.last_msg)}</span>
+      <span class="commit-time">${esc(g.last_time)}</span>
+    </div>` : '';
+
+  let diffStats = '';
+  if (g?.is_dirty) {
+    diffStats = `<div class="diff-stats">`;
+    if (g.staged   > 0) diffStats += `<div class="diff-item diff-staged"><div class="diff-dot"></div><span class="diff-label">staged</span><span class="diff-count">${g.staged}</span></div>`;
+    if (g.unstaged > 0) diffStats += `<div class="diff-item diff-unstaged"><div class="diff-dot"></div><span class="diff-label">modified</span><span class="diff-count">${g.unstaged}</span></div>`;
+    if (g.untracked> 0) diffStats += `<div class="diff-item diff-untracked"><div class="diff-dot"></div><span class="diff-label">untracked</span><span class="diff-count">${g.untracked}</span></div>`;
+    diffStats += `</div>`;
+  }
+
+  // Compact worktree preview (max 3, excluding main)
+  let wtPreview = '';
+  const wts = (g?.worktrees || []).filter(w => !w.is_main);
+  if (wts.length > 0) {
+    const shown = wts.slice(0, 3);
+    const statusKey = s => s.replace(' ', '-');
+    const rows = shown.map(w => {
+      const sk = statusKey(w.status || 'NA');
+      return `<div class="wt-preview-row">
+        <div class="wt-status-dot wt-s-${sk}"></div>
+        <span class="wt-preview-branch">${esc(w.branch || '(detached)')}</span>
+        <span style="color:var(--muted);margin-left:auto;font-size:0.6rem">${esc(w.age)}</span>
+      </div>`;
+    }).join('');
+    const more = wts.length > 3 ? `<div class="wt-more">+${wts.length - 3} more</div>` : '';
+    wtPreview = `<div class="wt-preview">${rows}${more}</div>`;
+  }
+
+  const hasGit = !!g;
+  return `
+    <div class="card ${statusClass}" style="animation-delay:${delay}ms">
+      <div class="card-status-bar"></div>
+      <div class="card-body">
+        <div class="card-top">
+          <div class="repo-name">${esc(p.name)}</div>
+          <div class="badge-row">${badges}</div>
+        </div>
+        ${commitLine}
+        ${diffStats}
+        ${wtPreview}
+        <div class="card-actions">
+          <button class="action-btn primary" onclick="openVSCode('${eA(p.name)}')">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            VS Code
+          </button>
+          <button class="action-btn" onclick="viewReadme('${eA(p.name)}')">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            README
+          </button>
+          ${hasGit ? `
+          <button class="action-btn wt-btn" onclick="openWTModal('${eA(p.name)}')">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/></svg>
+            Worktrees
+          </button>
+          <button class="action-btn" onclick="gitAction('${eA(p.name)}', 'pull')" title="git pull">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+            pull
+          </button>` : ''}
+        </div>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════
+// WORKTREE MANAGER MODAL
+// ═══════════════════════════════════════════════════
+async function openWTModal(repoName) {
+  wtRepoName = repoName;
+  confirmMode = null;
+  confirmTarget = null;
+  document.getElementById('wt-modal-title').textContent = repoName;
+  document.getElementById('wt-modal-sub').textContent = 'worktree manager';
+  document.getElementById('wt-modal-body').innerHTML = `<div class="wt-loading"><div class="spinner"></div> loading…</div>`;
+  document.getElementById('wt-overlay').classList.add('open');
+  await refreshWTModal();
+}
+
+function closeWTModal() {
+  document.getElementById('wt-overlay').classList.remove('open');
+  wtRepoName = '';
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('wt-overlay')) closeWTModal();
+}
+
+async function refreshWTModal() {
+  const [listRes, suffixRes] = await Promise.all([
+    fetch(`${API}/wt/${encodeURIComponent(wtRepoName)}/list`),
+    fetch(`${API}/wt/${encodeURIComponent(wtRepoName)}/default-suffix`),
+  ]);
+  const listData   = await listRes.json();
+  const suffixData = await suffixRes.json();
+
+  wtData = listData.worktrees || [];
+  const currentBranch = listData.current_branch || '';
+  const defaultSuffix = suffixData.suffix || '';
+
+  document.getElementById('wt-modal-sub').textContent = `on ${currentBranch} · ${wtData.length} worktree(s)`;
+  renderWTModal(currentBranch, defaultSuffix);
+}
+
+function renderWTModal(currentBranch, defaultSuffix) {
+  const main = wtData.find(w => w.is_main);
+  const mainSha = main?.branch_sha || '';
+
+  const contextBar = `
+    <div class="context-bar">
+      <span class="context-label">current branch</span>
+      <span class="context-branch">⎇ ${esc(currentBranch)}</span>
+      ${mainSha ? `<span class="context-sha">(${esc(mainSha)})</span>` : ''}
+      <span style="margin-left:auto;color:var(--muted);font-size:0.65rem">Merge status compares each worktree against this branch</span>
+    </div>`;
+
+  const createSection = `
+    <div class="create-section">
+      <div class="create-header">➕ New Worktree</div>
+      <div class="create-row">
+        <input class="create-input" id="wt-new-name" type="text" value="${esc(defaultSuffix)}" placeholder="branch-name-suffix">
+        <button class="create-btn" id="wt-create-btn" onclick="createWorktree()">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Create
+        </button>
+      </div>
+      <div class="create-hint">Creates a new branch + worktree at <code>../${defaultSuffix || 'branch-name'}</code> from <strong style="color:var(--text)">${esc(currentBranch)}</strong></div>
+    </div>`;
+
+  const linked = wtData.filter(w => !w.is_main);
+  let tableHtml = '';
+  if (linked.length === 0) {
+    tableHtml = `<div class="wt-empty">No linked worktrees. Create one above.</div>`;
+  } else {
+    const statusKey = s => (s || 'NA').replace(' ', '-');
+    const rows = linked.map((wt, i) => {
+      const sk     = statusKey(wt.status);
+      const pathShort = (wt.path || '').replace(/\\/g, '/').split('/').slice(-2).join('/');
+      const notMergedWarn = wt.status === 'NOT MERGED'
+        ? `<span style="color:var(--yellow);margin-left:4px" title="Has unmerged commits">⚠</span>` : '';
+      return `
+        <tr class="wt-row">
+          <td class="wt-cell wt-cell-branch">${esc(wt.branch || '(detached)')}${notMergedWarn}</td>
+          <td class="wt-cell">
+            <span class="wt-status s-${sk}">
+              <span class="wt-status-dot-sm dot-${sk}"></span>
+              ${esc(wt.status || 'N/A')}
+            </span>
+          </td>
+          <td class="wt-cell wt-cell-sha">${esc(wt.branch_sha)}</td>
+          <td class="wt-cell wt-cell-path" title="${esc(wt.path)}">…/${esc(pathShort)}</td>
+          <td class="wt-cell wt-cell-age">${esc(wt.age)}</td>
+          <td class="wt-cell">
+            <div class="wt-actions-cell">
+              <button class="wt-action wt-open"  onclick="wtOpen('${eA(wt.path)}')">open</button>
+              ${wt.branch ? `<button class="wt-action wt-merge" onclick="wtShowMerge(${i})">merge</button>` : ''}
+              <button class="wt-action wt-del"   onclick="wtShowRemove(${i})">remove</button>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+
+    tableHtml = `
+      <div class="wt-section-label">Linked Worktrees (${linked.length})</div>
+      <table class="wt-table">
+        <thead>
+          <tr>
+            <th>Branch</th>
+            <th>Status</th>
+            <th>SHA</th>
+            <th>Path</th>
+            <th>Age</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
+  document.getElementById('wt-modal-body').innerHTML =
+    contextBar + createSection + tableHtml + `<div id="confirm-area"></div>`;
+}
+
+// ── CREATE ──
+async function createWorktree() {
+  const input = document.getElementById('wt-new-name');
+  const btn   = document.getElementById('wt-create-btn');
+  const suffix = input?.value?.trim();
+  if (!suffix) { toast('Enter a branch name', 'err'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Creating…';
+  try {
+    const res  = await fetch(`${API}/wt/${encodeURIComponent(wtRepoName)}/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ suffix }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      toast(`✓ Worktree '${suffix}' created`, 'ok');
+      await refreshWTModal();
+      loadProjects();
+    } else {
+      toast(`✗ ${data.output || data.detail || 'Unknown error'}`, 'err');
+      btn.disabled = false;
+      btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Create`;
+    }
+  } catch (e) {
+    toast(`✗ Cannot reach server: ${e.message}`, 'err');
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Create`;
+  }
+}
+
+// ── OPEN ──
+async function wtOpen(path) {
+  await fetch(`${API}/open-worktree?path=${encodeURIComponent(path)}`);
+  toast('Opened in VS Code', 'ok');
+}
+
+// ── REMOVE CONFIRM ──
+function wtShowRemove(idx) {
+  const linked = wtData.filter(w => !w.is_main);
+  const wt = linked[idx];
+  if (!wt) return;
+  confirmMode   = 'remove';
+  confirmTarget = wt;
+
+  const notMergedWarn = wt.status === 'NOT MERGED'
+    ? `<div class="confirm-warn">⚠ This worktree has unmerged commits — they will be lost if you delete the branch.</div>` : '';
+
+  document.getElementById('confirm-area').innerHTML = `
+    <div class="confirm-panel" id="confirm-panel">
+      <div class="confirm-title">🗑 Remove Worktree</div>
+      <div class="confirm-detail">
+        Branch: <strong>${esc(wt.branch || '(detached)')}</strong><br>
+        Path: <strong>${esc(wt.path)}</strong><br>
+        Status: <strong style="color:var(--${statusColor(wt.status)})">${esc(wt.status)}</strong>
+      </div>
+      ${notMergedWarn}
+      <label class="checkbox-row">
+        <input type="checkbox" id="del-branch-check">
+        Also delete the branch <strong style="color:var(--text)">${esc(wt.branch || '')}</strong>
+      </label>
+      <div class="confirm-btns">
+        <button class="btn-confirm btn-cancel" onclick="clearConfirm()">Cancel</button>
+        <button class="btn-confirm btn-danger" onclick="doRemove()">Remove</button>
+      </div>
+    </div>`;
+
+  document.getElementById('confirm-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function doRemove() {
+  const wt = confirmTarget;
+  const deleteBranch = document.getElementById('del-branch-check')?.checked || false;
+  clearConfirm();
+  toast('Removing worktree…');
+
+  const res  = await fetch(`${API}/wt/${encodeURIComponent(wtRepoName)}/remove`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      worktree_path: wt.path,
+      branch: wt.branch,
+      delete_branch: deleteBranch,
+    }),
+  });
+  const data = await res.json();
+  if (data.success) {
+    toast(`✓ Removed ${wt.branch || wt.path}`, 'ok');
+    await refreshWTModal();
+    loadProjects();
+  } else {
+    toast(`✗ ${data.output}`, 'err');
+  }
+}
+
+// ── MERGE CONFIRM ──
+function wtShowMerge(idx) {
+  const linked = wtData.filter(w => !w.is_main);
+  const wt = linked[idx];
+  if (!wt) return;
+  confirmMode   = 'merge';
+  confirmTarget = wt;
+
+  const main = wtData.find(w => w.is_main);
+  const currentBranch = wt.parent_branch || main?.branch || '?';
+
+  document.getElementById('confirm-area').innerHTML = `
+    <div class="confirm-panel" id="confirm-panel">
+      <div class="confirm-title">⎇ Merge Worktree</div>
+      <div class="confirm-detail">
+        Merge <strong>${esc(wt.branch)}</strong> into <strong style="color:var(--green)">${esc(currentBranch)}</strong><br>
+        SHA: <strong>${esc(wt.branch_sha)}</strong> · Status: <strong style="color:var(--${statusColor(wt.status)})">${esc(wt.status)}</strong>
+      </div>
+      <label class="checkbox-row">
+        <input type="checkbox" id="cleanup-check" checked>
+        Remove worktree after merge
+      </label>
+      <label class="checkbox-row">
+        <input type="checkbox" id="del-branch-merge-check" checked>
+        Delete branch <strong style="color:var(--text)">${esc(wt.branch)}</strong> after merge
+      </label>
+      <div class="confirm-btns">
+        <button class="btn-confirm btn-cancel" onclick="clearConfirm()">Cancel</button>
+        <button class="btn-confirm btn-success" onclick="doMerge()">Merge</button>
+      </div>
+    </div>`;
+
+  document.getElementById('confirm-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function doMerge() {
+  const wt = confirmTarget;
+  const cleanup     = document.getElementById('cleanup-check')?.checked ?? true;
+  const deleteBranch= document.getElementById('del-branch-merge-check')?.checked ?? true;
+  clearConfirm();
+  toast('Merging…');
+
+  const res  = await fetch(`${API}/wt/${encodeURIComponent(wtRepoName)}/merge`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      branch: wt.branch,
+      worktree_path: wt.path,
+      cleanup,
+      delete_branch: deleteBranch,
+    }),
+  });
+  const data = await res.json();
+  if (data.success) {
+    const into = data.merged_into || '';
+    toast(`✓ Merged ${wt.branch} → ${into}`, 'ok');
+    await refreshWTModal();
+    loadProjects();
+  } else {
+    toast(`✗ ${data.output}`, 'err');
+  }
+}
+
+function clearConfirm() {
+  document.getElementById('confirm-area').innerHTML = '';
+  confirmMode = null;
+  confirmTarget = null;
+}
+
+function statusColor(s) {
+  const map = { 'FRESH': 'cyan', 'MERGED': 'green', 'NOT MERGED': 'yellow', 'DETACHED': 'red' };
+  return map[s] || 'muted';
+}
+
+// ═══════════════════════════════════════════════════
+// CARD ACTIONS
+// ═══════════════════════════════════════════════════
+async function openVSCode(name) {
+  await fetch(`${API}/open/${name}`);
+  toast(`Opening ${name} in VS Code`);
+}
+
+async function viewReadme(name) {
+  document.getElementById('panel-title').textContent = `${name} / README.md`;
+  document.getElementById('readme-content').innerHTML = `<div style="color:var(--muted);font-family:var(--mono);font-size:0.75rem;padding:20px">loading…</div>`;
+  document.getElementById('readme-panel').classList.add('open');
+  document.getElementById('backdrop').classList.add('show');
+  const res  = await fetch(`${API}/readme/${name}`);
+  const data = await res.json();
+  document.getElementById('readme-content').innerHTML = renderMarkdown(data.content);
+}
+
+async function gitAction(name, action) {
+  toast(`Running git ${action}…`);
+  const res  = await fetch(`${API}/git/${name}/${action}`, { method: 'POST' });
+  const data = await res.json();
+  toast(
+    data.success ? `✓ ${(data.output || '').split('\n')[0] || 'Done'}` : `✗ ${(data.output || '').split('\n')[0]}`,
+    data.success ? 'ok' : 'err'
+  );
+  if (data.success) setTimeout(loadProjects, 800);
+}
+
+function closePanel() {
+  document.getElementById('readme-panel').classList.remove('open');
+  document.getElementById('backdrop').classList.remove('show');
+}
+
+// ═══════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════
+let toastTimer;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = type ? `show ${type}` : 'show';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.className = '', 2800);
+}
+
+// ═══════════════════════════════════════════════════
+// MARKDOWN RENDERER
+// ═══════════════════════════════════════════════════
+function renderMarkdown(md) {
+  if (!md) return '';
+  const e = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  let h = e(md);
+  h = h.replace(/```[\w]*\n([\s\S]*?)```/g, (_, c) => `<pre><code>${c.trimEnd()}</code></pre>`);
+  h = h.replace(/`([^`]+)`/g, '<code>$1</code>');
+  h = h.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  h = h.replace(/^## (.+)$/gm,  '<h2>$1</h2>');
+  h = h.replace(/^# (.+)$/gm,   '<h1>$1</h1>');
+  h = h.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  h = h.replace(/\*(.+?)\*/g,     '<em>$1</em>');
+  h = h.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+  h = h.replace(/^---$/gm, '<hr>');
+  h = h.replace(/^[-*] (.+)$/gm, '<li>$1</li>');
+  h = h.replace(/(<li>.*<\/li>\n?)+/g, m => `<ul>${m}</ul>`);
+  h = h.replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>');
+  h = h.split(/\n{2,}/).map(b =>
+    /^<(h[1-6]|ul|pre|blockquote|hr)/.test(b.trim()) ? b : `<p>${b.replace(/\n/g,' ')}</p>`
+  ).join('\n');
+  return h;
+}
+
+// ═══════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════
+function esc(s)  { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function eA(s)   { return String(s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+
+// ═══════════════════════════════════════════════════
+// EVENTS
+// ═══════════════════════════════════════════════════
+document.getElementById('search').addEventListener('input', renderGrid);
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
+    renderGrid();
+  });
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (document.getElementById('wt-overlay').classList.contains('open')) {
+      if (confirmMode) clearConfirm();
+      else closeWTModal();
+    } else {
+      closePanel();
+    }
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'r') { e.preventDefault(); loadProjects(); }
+});
+
+loadProjects();
+</script>
+</body>
+</html>

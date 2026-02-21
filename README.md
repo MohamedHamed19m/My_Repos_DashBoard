@@ -1,2 +1,20 @@
-# My_Repos_DashBoard
-a DashBoard that help me manage my repos and worktrees
+# 🛠️ Local Worktree Dashboard
+
+A lightweight, self-hosted web dashboard to manage local repositories and workflows. Built with a **FastAPI** backend and a modern **Glassmorphism** frontend.
+
+## 🚀 Features
+- **Project Grid:** Auto-scans your project directory.
+- **Direct Launch:** Open any project in VS Code with a single click.
+- **Documentation Viewer:** (In-progress) Preview READMEs directly in the browser.
+- **Clean UI:** Dark-mode optimized for developers.
+
+## 🛠️ Tech Stack
+- **Backend:** Python 3.12+ via `FastAPI`
+- **Package Management:** `uv` (Astral)
+- **Frontend:** Vanilla HTML5, CSS3 (Grid/Flexbox), and JavaScript (Fetch API)
+
+## 🚦 Getting Started
+
+1. **Start the Backend:**
+   ```bash
+   uv run --with fastapi --with uvicorn uvicorn main:app --reload
