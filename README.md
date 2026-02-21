@@ -7,7 +7,12 @@ A lightweight, self-hosted web dashboard to manage local repositories and workfl
 - **Direct Launch:** Open any project in VS Code with a single click.
 - **Git Actions:** History, branches, pull, force reset, force clean — all in one modal.
 - **Worktree Manager:** Create, remove, and merge Git worktrees with visual status.
-- **Activity Stats:** Top repos, day-of-week chart, and commit streaks.
+- **Advanced Activity Stats:**
+  - Top repos with 7-day sparklines
+  - Streak Hero cards (current & longest streaks) with fire icons 🔥
+  - Hour-of-day interactive heatmap
+  - This Week vs. Last Week comparison
+  - Uncommitted work health bar with status pulsing
 - **Recent Files:** Hover over commit line to see files changed in recent commits.
 - **Custom Commands:** Define per-repo commands (test, build, deploy) and run them with one click.
 - **Documentation Viewer:** Preview READMEs directly in the browser.

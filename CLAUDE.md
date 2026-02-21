@@ -46,7 +46,7 @@ The server runs on `http://127.0.0.1:8000` by default.
 | Endpoint | Purpose |
 |----------|---------|
 | `GET /projects` | Scan BASE_PATH and return all repos with Git info |
-| `GET /stats` | Get activity statistics (top repos, day distribution, streaks) |
+| `GET /stats` | Get advanced statistics (top repos with sparklines, current/longest streaks, hourly heatmap, week-over-week comparison, uncommitted health) |
 | `GET /open/{name}` | Open a repo in VS Code |
 | `GET /open-worktree?path=` | Open a worktree path in VS Code |
 | `GET /readme/{name}` | Fetch README.md content |
@@ -76,7 +76,12 @@ Single-file application with embedded CSS and JavaScript:
 - Custom commands panel per repo (edit and run repo-specific commands)
 - Worktree Manager modal with create/remove/merge functionality
 - Git Actions modal with history, branches, pull, force reset, force clean
-- Stats modal showing top repos, day-of-week activity, and streaks
+- Advanced Stats modal with:
+  - Streak Hero cards with fire icons 🔥 (current & longest streaks)
+  - Interactive hour-of-day heatmap (24-hour grid)
+  - This Week vs. Last Week comparative bar charts
+  - Uncommitted work health bar with status pulsing
+  - 7-day sparklines for each repository
 - README slide-out panel
 - Toast notifications
 
@@ -94,6 +99,7 @@ Single-file application with embedded CSS and JavaScript:
 - **Git commands modal**: The git button opens a modal with safe operations (history, branches, pull) and dangerous operations (force reset, force clean). The branches endpoint returns up to 5 latest branches with current branch highlighting.
 - **Recent files tooltip**: Uses `git diff --name-status HEAD~5..HEAD` to get files changed in last 5 commits. Lazy-loaded on first hover and cached per session.
 - **Custom commands storage**: Stored in `BASE_PATH/commands.json` as `{"repo-name": [{"label": "test", "cmd": "npm test"}]}`. Commands run in the repo directory with output captured and displayed.
+- **Advanced stats metrics**: The `/stats` endpoint calculates streaks (consecutive commit days), hourly distribution for heatmap, week-over-week comparison (last 7 days vs previous 7 days), and uncommitted work health (dirty repos with file counts).
 
 ## Testing Changes
 
