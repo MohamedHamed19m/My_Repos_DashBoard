@@ -13,6 +13,13 @@ A lightweight, self-hosted web dashboard to manage local repositories and workfl
 - **Package Management:** `uv` (Astral)
 - **Frontend:** Vanilla HTML5, CSS3 (Grid/Flexbox), and JavaScript (Fetch API)
 
+## 📸 Screenshots
+
+### Dashboard View
+![Dashboard Screenshot](docs/image/dashboard.png)
+
+The main dashboard interface displaying the project grid with glassmorphism design, dark-mode optimization, and quick-launch capabilities for your local repositories.
+
 ## 🚦 Getting Started
 
 1. **Start the Backend:**

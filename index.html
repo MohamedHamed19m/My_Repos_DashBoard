@@ -182,6 +182,8 @@
     .action-btn.primary:hover { background: rgba(79,142,247,0.1); border-color: var(--accent); }
     .action-btn.wt-btn { border-color: rgba(167,139,250,0.3); color: var(--purple); }
     .action-btn.wt-btn:hover { background: rgba(167,139,250,0.1); border-color: var(--purple); }
+    .action-btn.git-btn { border-color: rgba(62,207,142,0.3); color: var(--green); }
+    .action-btn.git-btn:hover { background: rgba(62,207,142,0.1); border-color: var(--green); }
 
     /* ── WORKTREE MANAGER MODAL ── */
     .modal-overlay {
@@ -354,6 +356,77 @@
     /* Loading row */
     .wt-loading { display: flex; align-items: center; gap: 10px; padding: 24px 0; font-family: var(--mono); font-size: 0.75rem; color: var(--muted); justify-content: center; }
 
+    /* Git Actions Grid */
+    .git-actions-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .git-action-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      text-align: center;
+    }
+    .git-action-card:hover {
+      background: var(--surface3);
+      border-color: var(--border2);
+      transform: translateY(-2px);
+    }
+    .git-action-card.danger:hover {
+      border-color: rgba(242,95,92,0.5);
+      background: rgba(242,95,92,0.08);
+    }
+    .git-icon {
+      width: 40px; height: 40px;
+      border-radius: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--muted);
+    }
+    .git-action-card:hover .git-icon {
+      color: var(--text);
+      border-color: var(--border2);
+    }
+    .git-action-card.danger:hover .git-icon {
+      color: var(--red);
+      border-color: rgba(242,95,92,0.4);
+      background: rgba(242,95,92,0.1);
+    }
+    .git-label {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .git-desc {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--muted);
+    }
+    .git-history-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 0.7rem;
+    }
+    .git-history-item:last-child { border-bottom: none; }
+    .git-history-item:hover { background: var(--surface2); }
+    .git-hash { color: var(--accent); font-weight: 700; flex-shrink: 0; }
+    .git-msg { color: var(--text); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .git-meta { color: var(--muted); font-size: 0.65rem; flex-shrink: 0; }
+
     /* ── README PANEL ── */
     #readme-panel {
       position: fixed; top: 0; right: -680px; width: 660px; height: 100vh;
@@ -471,6 +544,73 @@
   </div>
 </div>
 
+<!-- ── GIT ACTIONS MODAL ── -->
+<div class="modal-overlay" id="git-overlay" onclick="handleGitOverlayClick(event)">
+  <div class="wt-modal" id="git-modal" style="width: 600px;">
+    <div class="modal-header">
+      <div class="modal-title-wrap">
+        <div class="modal-icon" style="background: linear-gradient(135deg, rgba(62,207,142,0.3), rgba(34,211,238,0.3));"></div>
+        <div>
+          <div class="modal-title" id="git-modal-title">Git Actions</div>
+          <div class="modal-subtitle" id="git-modal-sub">—</div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeGitModal()">✕</button>
+    </div>
+    <div class="modal-body" id="git-modal-body">
+      <div class="git-actions-grid">
+        <button class="git-action-card" onclick="gitModalAction('history')">
+          <div class="git-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="git-label">History</div>
+          <div class="git-desc">View recent commits</div>
+        </button>
+        <button class="git-action-card" onclick="gitModalAction('branches')">
+          <div class="git-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+          </div>
+          <div class="git-label">Branches</div>
+          <div class="git-desc">View latest branches</div>
+        </button>
+        <button class="git-action-card" onclick="gitModalAction('pull')">
+          <div class="git-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
+          </div>
+          <div class="git-label">Pull</div>
+          <div class="git-desc">git pull</div>
+        </button>
+        <button class="git-action-card danger" onclick="gitModalAction('reset')">
+          <div class="git-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          </div>
+          <div class="git-label">Force Reset</div>
+          <div class="git-desc">git reset --hard HEAD</div>
+        </button>
+        <button class="git-action-card danger" onclick="gitModalAction('clean')">
+          <div class="git-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </div>
+          <div class="git-label">Force Clean</div>
+          <div class="git-desc">git clean -fd</div>
+        </button>
+      </div>
+      <div id="git-history-panel" style="display:none;margin-top:16px;">
+        <div class="wt-section-label">Recent Commits</div>
+        <div id="git-history-list"></div>
+      </div>
+      <div id="git-branches-panel" style="display:none;margin-top:16px;">
+        <div class="wt-section-label">Branches</div>
+        <div id="git-branches-list"></div>
+      </div>
+      <div id="git-result-panel" style="display:none;margin-top:16px;">
+        <div class="wt-section-label">Result</div>
+        <pre id="git-result-output" style="background:var(--surface2);padding:12px;border-radius:8px;font-size:0.7rem;max-height:200px;overflow:auto;"></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ── README PANEL ── -->
 <div id="backdrop" onclick="closePanel()"></div>
 <div id="readme-panel">
@@ -491,6 +631,7 @@ let wtRepoName = '';      // which repo the modal is open for
 let wtData = [];          // cached worktree list for modal
 let confirmMode = null;   // 'remove' | 'merge' | null
 let confirmTarget = null; // the worktree object being actioned
+let gitRepoName = '';      // which repo the git modal is open for
 
 // ═══════════════════════════════════════════════════
 // DASHBOARD LOAD
@@ -608,9 +749,9 @@ function buildCard(p, i) {
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/><line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/><line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/></svg>
             Worktrees
           </button>
-          <button class="action-btn" onclick="gitAction('${eA(p.name)}', 'pull')" title="git pull">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="3" x2="12" y2="21"/></svg>
-            pull
+          <button class="action-btn git-btn" onclick="openGitModal('${eA(p.name)}')">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><line x1="6" y1="9" x2="6" y2="21"/></svg>
+            git
           </button>` : ''}
         </div>
       </div>
@@ -934,6 +1075,160 @@ async function gitAction(name, action) {
   if (data.success) setTimeout(loadProjects, 800);
 }
 
+async function viewGitDetails(name) {
+  // Open the panel and show a loading state
+  document.getElementById('panel-title').textContent = `${name} / Git History`;
+  document.getElementById('readme-content').innerHTML = `<div class="loading"><div class="spinner"></div> fetching git data…</div>`;
+  document.getElementById('readme-panel').classList.add('open');
+  document.getElementById('backdrop').classList.add('show');
+
+  try {
+    const res = await fetch(`${API}/git/${encodeURIComponent(name)}/details`);
+    const data = await res.json();
+
+    if (data.error) {
+      document.getElementById('readme-content').innerHTML = `<p style="color:var(--red)">${data.error}</p>`;
+      return;
+    }
+
+    // 1. Build the Branches HTML
+    let branchHtml = `<h3>⎇ Branches</h3><div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:30px;">`;
+    data.branches.forEach(b => {
+      const isCurrent = b.startsWith('*');
+      const bName = isCurrent ? b.substring(1).trim() : b;
+      const style = isCurrent 
+        ? `background:rgba(62,207,142,0.15); color:var(--green); border:1px solid rgba(62,207,142,0.3);` 
+        : `background:var(--surface2); color:var(--text); border:1px solid var(--border);`;
+      branchHtml += `<span style="padding:5px 10px; border-radius:6px; font-family:var(--mono); font-size:0.75rem; ${style}">${bName}</span>`;
+    });
+    branchHtml += `</div>`;
+
+    // 2. Build the Commits HTML
+    let commitHtml = `<h3>📝 Last 10 Commits</h3><div style="display:flex; flex-direction:column; gap:12px;">`;
+    if (data.commits.length === 0) {
+        commitHtml += `<div style="color:var(--muted); font-family:var(--mono); font-size:0.8rem;">No commits found.</div>`;
+    } else {
+        data.commits.forEach(c => {
+          commitHtml += `
+            <div style="background:var(--surface2); border:1px solid var(--border); padding:14px; border-radius:8px; transition: border-color 0.2s;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-family:var(--mono); font-size:0.75rem;">
+                <span style="color:var(--accent); font-weight:bold;">${c.hash}</span>
+                <span style="color:var(--muted)">${c.time}</span>
+              </div>
+              <div style="font-size:0.9rem; color:var(--text); margin-bottom:8px; line-height: 1.4;">${esc(c.message)}</div>
+              <div style="font-size:0.75rem; color:var(--muted); font-family:var(--mono);">👤 ${esc(c.author)}</div>
+            </div>`;
+        });
+    }
+    commitHtml += `</div>`;
+
+    // Inject the final HTML into the panel
+    document.getElementById('readme-content').innerHTML = branchHtml + commitHtml;
+
+  } catch (e) {
+    document.getElementById('readme-content').innerHTML = `<p style="color:var(--red)">Failed to reach backend.</p>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// GIT ACTIONS MODAL
+// ═══════════════════════════════════════════════════
+function openGitModal(repoName) {
+  gitRepoName = repoName;
+  document.getElementById('git-modal-title').textContent = repoName;
+  document.getElementById('git-modal-sub').textContent = 'git actions';
+  document.getElementById('git-history-panel').style.display = 'none';
+  document.getElementById('git-result-panel').style.display = 'none';
+  document.getElementById('git-overlay').classList.add('open');
+}
+
+function closeGitModal() {
+  document.getElementById('git-overlay').classList.remove('open');
+  gitRepoName = '';
+}
+
+function handleGitOverlayClick(e) {
+  if (e.target === document.getElementById('git-overlay')) closeGitModal();
+}
+
+async function gitModalAction(action) {
+  const resultPanel = document.getElementById('git-result-panel');
+  const resultOutput = document.getElementById('git-result-output');
+  const historyPanel = document.getElementById('git-history-panel');
+  const historyList = document.getElementById('git-history-list');
+  const branchesPanel = document.getElementById('git-branches-panel');
+  const branchesList = document.getElementById('git-branches-list');
+
+  if (action === 'history') {
+    // Show history panel
+    historyPanel.style.display = 'block';
+    resultPanel.style.display = 'none';
+    branchesPanel.style.display = 'none';
+    historyList.innerHTML = '<div class="wt-loading"><div class="spinner"></div> loading commits…</div>';
+
+    try {
+      const res = await fetch(`${API}/git/${encodeURIComponent(gitRepoName)}/log`);
+      const data = await res.json();
+
+      if (data.commits && data.commits.length > 0) {
+        historyList.innerHTML = data.commits.map(c => `
+          <div class="git-history-item">
+            <span class="git-hash">${esc(c.hash)}</span>
+            <span class="git-msg">${esc(c.message)}</span>
+            <span class="git-meta">${esc(c.date)} · ${esc(c.author)}</span>
+          </div>
+        `).join('');
+      } else {
+        historyList.innerHTML = '<div style="padding:12px;color:var(--muted);font-family:var(--mono);font-size:0.7rem;">No commits found</div>';
+      }
+    } catch (e) {
+      historyList.innerHTML = `<div style="padding:12px;color:var(--red);font-family:var(--mono);font-size:0.7rem;">Failed to load history</div>`;
+    }
+  } else if (action === 'branches') {
+    // Show branches panel
+    branchesPanel.style.display = 'block';
+    resultPanel.style.display = 'none';
+    historyPanel.style.display = 'none';
+    branchesList.innerHTML = '<div class="wt-loading"><div class="spinner"></div> loading branches…</div>';
+
+    try {
+      const res = await fetch(`${API}/git/${encodeURIComponent(gitRepoName)}/branches`);
+      const data = await res.json();
+
+      if (data.branches && data.branches.length > 0) {
+        branchesList.innerHTML = data.branches.map(b => `
+          <div class="git-history-item" style="${b.is_current ? 'background:rgba(62,207,142,0.08);' : ''}">
+            <span class="git-hash" style="color:${b.is_current ? 'var(--green)' : 'var(--accent)'}">${b.is_current ? '*' : '⋅'}</span>
+            <span class="git-msg" style="${b.is_current ? 'color:var(--green);font-weight:700;' : ''}">${esc(b.name)}</span>
+            <span class="git-meta">${b.is_current ? 'current' : ''}</span>
+          </div>
+        `).join('');
+      } else {
+        branchesList.innerHTML = '<div style="padding:12px;color:var(--muted);font-family:var(--mono);font-size:0.7rem;">No branches found</div>';
+      }
+    } catch (e) {
+      branchesList.innerHTML = `<div style="padding:12px;color:var(--red);font-family:var(--mono);font-size:0.7rem;">Failed to load branches</div>`;
+    }
+  } else {
+    // Run git command
+    historyPanel.style.display = 'none';
+    branchesPanel.style.display = 'none';
+    resultPanel.style.display = 'block';
+    resultOutput.textContent = `Running git ${action}…`;
+
+    const res = await fetch(`${API}/git/${gitRepoName}/${action}`, { method: 'POST' });
+    const data = await res.json();
+
+    resultOutput.textContent = data.output || (data.success ? 'Done!' : 'Failed');
+
+    toast(
+      data.success ? `✓ git ${action} completed` : `✗ git ${action} failed`,
+      data.success ? 'ok' : 'err'
+    );
+    if (data.success) setTimeout(loadProjects, 800);
+  }
+}
+
 function closePanel() {
   document.getElementById('readme-panel').classList.remove('open');
   document.getElementById('backdrop').classList.remove('show');
@@ -1001,6 +1296,8 @@ document.addEventListener('keydown', e => {
     if (document.getElementById('wt-overlay').classList.contains('open')) {
       if (confirmMode) clearConfirm();
       else closeWTModal();
+    } else if (document.getElementById('git-overlay').classList.contains('open')) {
+      closeGitModal();
     } else {
       closePanel();
     }
