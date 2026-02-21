@@ -509,7 +509,157 @@
       white-space: nowrap;
     }
 
-    /* ── README PANEL ── */
+    /* ── RECENT FILES TOOLTIP ── */
+    .commit-line { position: relative; }
+    .recent-files-trigger {
+      cursor: pointer;
+      border-radius: 3px;
+      padding: 1px 3px;
+      transition: background 0.15s;
+    }
+    .recent-files-trigger:hover { background: var(--surface3); }
+
+    .files-tooltip {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      z-index: 200;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 9px;
+      padding: 10px 0;
+      min-width: 280px;
+      max-width: 360px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+      animation: tooltipIn 0.15s ease;
+    }
+    @keyframes tooltipIn {
+      from { opacity:0; transform:translateY(-4px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .files-tooltip.visible { display: block; }
+    .tooltip-header {
+      font-family: var(--mono); font-size: 0.6rem; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.1em;
+      padding: 0 12px 8px; border-bottom: 1px solid var(--border);
+      margin-bottom: 6px;
+    }
+    .file-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 3px 12px; font-family: var(--mono); font-size: 0.67rem;
+    }
+    .file-row:hover { background: var(--surface3); }
+    .file-status {
+      width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.55rem; font-weight: 700;
+    }
+    .fs-M { background: rgba(245,200,66,0.15);  color: var(--yellow); }
+    .fs-A { background: rgba(62,207,142,0.15);  color: var(--green); }
+    .fs-D { background: rgba(242,95,92,0.15);   color: var(--red); }
+    .fs-R { background: rgba(79,142,247,0.15);  color: var(--accent); }
+    .fs-  { background: rgba(74,84,112,0.15);   color: var(--muted); }
+    .file-path { color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .file-dir  { color: var(--muted); }
+    .tooltip-loading { padding: 14px 12px; color: var(--muted); font-family: var(--mono); font-size: 0.7rem; display: flex; align-items: center; gap: 8px; }
+
+    /* ── COMMANDS PANEL ── */
+    .commands-section {
+      border-top: 1px solid var(--border);
+      margin-top: 10px; padding-top: 10px;
+    }
+    .commands-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 7px;
+    }
+    .commands-label {
+      font-family: var(--mono); font-size: 0.6rem; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .cmd-edit-toggle {
+      font-family: var(--mono); font-size: 0.6rem; color: var(--muted);
+      background: none; border: none; cursor: pointer; padding: 0;
+      transition: color 0.15s;
+    }
+    .cmd-edit-toggle:hover { color: var(--text); }
+    .cmd-run-row {
+      display: flex; align-items: center; gap: 6px;
+      margin-bottom: 5px;
+    }
+    .cmd-run-btn {
+      flex: 1; display: flex; align-items: center; gap: 6px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 6px; padding: 5px 10px;
+      font-family: var(--mono); font-size: 0.68rem; color: var(--text);
+      cursor: pointer; transition: all 0.15s; text-align: left;
+    }
+    .cmd-run-btn:hover { border-color: var(--green); color: var(--green); background: rgba(62,207,142,0.06); }
+    .cmd-run-btn.running { opacity: 0.6; cursor: not-allowed; }
+    .cmd-play { color: var(--green); flex-shrink: 0; }
+    .cmd-label { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cmd-shell { color: var(--muted); font-size: 0.58rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px; }
+
+    /* Edit mode */
+    .cmd-edit-area { margin-top: 8px; }
+    .cmd-edit-row {
+      display: flex; gap: 5px; margin-bottom: 5px; align-items: center;
+    }
+    .cmd-input {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 5px; padding: 4px 8px;
+      color: var(--text); font-family: var(--mono); font-size: 0.65rem;
+      outline: none; transition: border-color 0.15s;
+    }
+    .cmd-input:focus { border-color: var(--accent); }
+    .cmd-input-label { width: 80px; }
+    .cmd-input-cmd   { flex: 1; }
+    .cmd-del-btn {
+      background: none; border: 1px solid var(--border);
+      border-radius: 5px; padding: 4px 7px; color: var(--muted);
+      font-family: var(--mono); font-size: 0.6rem; cursor: pointer;
+      transition: all 0.15s; flex-shrink: 0;
+    }
+    .cmd-del-btn:hover { border-color: var(--red); color: var(--red); }
+    .cmd-add-btn {
+      background: none; border: 1px dashed var(--border2);
+      border-radius: 5px; padding: 4px 10px; color: var(--muted);
+      font-family: var(--mono); font-size: 0.62rem; cursor: pointer;
+      width: 100%; margin-top: 4px; transition: all 0.15s;
+    }
+    .cmd-add-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .cmd-save-btn {
+      background: rgba(62,207,142,0.12); border: 1px solid rgba(62,207,142,0.3);
+      border-radius: 5px; padding: 4px 12px; color: var(--green);
+      font-family: var(--mono); font-size: 0.62rem; font-weight: 700;
+      cursor: pointer; width: 100%; margin-top: 6px; transition: all 0.15s;
+    }
+    .cmd-save-btn:hover { background: rgba(62,207,142,0.2); }
+
+    /* Command output panel */
+    .cmd-output-panel {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 7px; margin-top: 8px; overflow: hidden;
+      display: none;
+    }
+    .cmd-output-panel.visible { display: block; }
+    .cmd-output-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 5px 10px; background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      font-family: var(--mono); font-size: 0.6rem; color: var(--muted);
+    }
+    .cmd-output-close { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.7rem; }
+    .cmd-output-close:hover { color: var(--text); }
+    .cmd-output-body {
+      padding: 8px 10px; font-family: var(--mono); font-size: 0.65rem;
+      color: var(--text); white-space: pre-wrap; max-height: 120px;
+      overflow-y: auto; line-height: 1.5;
+    }
+    .cmd-output-ok  { color: var(--green); }
+    .cmd-output-err { color: var(--red); }
+
+    /* ── RECENT FILES TOOLTIP ── */
     #readme-panel {
       position: fixed; top: 0; right: -680px; width: 660px; height: 100vh;
       background: var(--surface); border-left: 1px solid var(--border2);
@@ -742,6 +892,8 @@ let gitRepoName = '';      // which repo the git modal is open for
 // DASHBOARD LOAD
 // ═══════════════════════════════════════════════════
 async function loadProjects() {
+  // Clear file cache so hover data is fresh
+  Object.keys(fileCache).forEach(k => delete fileCache[k]);
   const btn = document.getElementById('refresh-btn');
   btn.classList.add('spinning');
   document.getElementById('grid').innerHTML = `<div class="loading"><div class="spinner"></div> loading repos…</div>`;
@@ -777,6 +929,8 @@ function renderGrid() {
   const grid = document.getElementById('grid');
   if (!projects.length) { grid.innerHTML = `<div class="empty">no repos match</div>`; return; }
   grid.innerHTML = projects.map((p, i) => buildCard(p, i)).join('');
+  // Load saved commands into all rendered cards
+  setTimeout(loadAllCmds, 50);
 }
 
 function buildCard(p, i) {
@@ -795,10 +949,21 @@ function buildCard(p, i) {
   }
 
   let commitLine = g?.last_msg ? `
-    <div class="commit-line">
+    <div class="commit-line" id="cline-${esc(p.name)}">
       <span class="commit-hash">${esc(g.last_hash)}</span>
-      <span class="commit-msg">${esc(g.last_msg)}</span>
+      <span class="commit-msg recent-files-trigger"
+            onmouseenter="showRecentFiles(event,'${eA(p.name)}')"
+            onmouseleave="scheduleHideTooltip('${eA(p.name)}')"
+            title="Hover to see recently changed files">
+        ${esc(g.last_msg)}
+      </span>
       <span class="commit-time">${esc(g.last_time)}</span>
+      <div class="files-tooltip" id="ftip-${esc(p.name)}"
+           onmouseenter="cancelHideTooltip('${eA(p.name)}')"
+           onmouseleave="scheduleHideTooltip('${eA(p.name)}')">
+        <div class="tooltip-header">recently changed files (last 5 commits)</div>
+        <div class="tooltip-loading"><div class="spinner" style="width:12px;height:12px;border-width:1.5px"></div> loading…</div>
+      </div>
     </div>` : '';
 
   let diffStats = '';
@@ -829,6 +994,26 @@ function buildCard(p, i) {
   }
 
   const hasGit = !!g;
+  const cmdsHtml = `
+    <div class="commands-section" id="cmds-${esc(p.name)}">
+      <div class="commands-header">
+        <span class="commands-label">⚡ commands</span>
+        <button class="cmd-edit-toggle" onclick="toggleCmdEdit('${eA(p.name)}')">edit</button>
+      </div>
+      <div class="cmd-run-list" id="cmdlist-${esc(p.name)}">
+        <div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);padding:2px 0">
+          no commands — click edit to add
+        </div>
+      </div>
+      <div class="cmd-edit-area" id="cmdedit-${esc(p.name)}" style="display:none"></div>
+      <div class="cmd-output-panel" id="cmdout-${esc(p.name)}">
+        <div class="cmd-output-header">
+          <span id="cmdout-label-${esc(p.name)}">output</span>
+          <button class="cmd-output-close" onclick="closeCmdOutput('${eA(p.name)}')">✕</button>
+        </div>
+        <div class="cmd-output-body" id="cmdout-body-${esc(p.name)}"></div>
+      </div>
+    </div>`;
   return `
     <div class="card ${statusClass}" style="animation-delay:${delay}ms">
       <div class="card-status-bar"></div>
@@ -840,6 +1025,7 @@ function buildCard(p, i) {
         ${commitLine}
         ${diffStats}
         ${wtPreview}
+        ${cmdsHtml}
         <div class="card-actions">
           <button class="action-btn primary" onclick="openVSCode('${eA(p.name)}')">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
@@ -1149,6 +1335,200 @@ function clearConfirm() {
 function statusColor(s) {
   const map = { 'FRESH': 'cyan', 'MERGED': 'green', 'NOT MERGED': 'yellow', 'DETACHED': 'red' };
   return map[s] || 'muted';
+}
+
+// ═══════════════════════════════════════════════════
+// RECENT FILES TOOLTIP
+// ═══════════════════════════════════════════════════
+const fileCache = {};       // repoName -> files array
+const tooltipHideTimers = {}; // repoName -> timer id
+
+async function showRecentFiles(e, name) {
+  cancelHideTooltip(name);
+  const tip = document.getElementById(`ftip-${name}`);
+  if (!tip) return;
+  tip.classList.add('visible');
+
+  if (fileCache[name]) {
+    renderFilesTooltip(name, fileCache[name]);
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API}/git/${encodeURIComponent(name)}/recent-files`);
+    const data = await res.json();
+    fileCache[name] = data.files || [];
+    renderFilesTooltip(name, fileCache[name]);
+  } catch {
+    const tip = document.getElementById(`ftip-${name}`);
+    if (tip) tip.innerHTML = `<div class="tooltip-loading" style="color:var(--red)">failed to load</div>`;
+  }
+}
+
+function renderFilesTooltip(name, files) {
+  const tip = document.getElementById(`ftip-${name}`);
+  if (!tip) return;
+  if (!files.length) {
+    tip.innerHTML = `<div class="tooltip-header">recently changed files</div><div class="tooltip-loading">no changes found</div>`;
+    return;
+  }
+  const statusLabel = { M: 'M', A: 'A', D: 'D', R: 'R' };
+  const rows = files.map(f => {
+    const parts = f.path.replace(/\\/g, '/').split('/');
+    const fname = parts.pop();
+    const dir   = parts.length ? parts.join('/') + '/' : '';
+    const s     = f.status || '?';
+    return `<div class="file-row">
+      <div class="file-status fs-${s}">${statusLabel[s] || s}</div>
+      <span class="file-path"><span class="file-dir">${esc(dir)}</span>${esc(fname)}</span>
+    </div>`;
+  }).join('');
+  tip.innerHTML = `<div class="tooltip-header">recently changed files (last 5 commits)</div>${rows}`;
+}
+
+function scheduleHideTooltip(name) {
+  tooltipHideTimers[name] = setTimeout(() => {
+    const tip = document.getElementById(`ftip-${name}`);
+    if (tip) tip.classList.remove('visible');
+  }, 180);
+}
+
+function cancelHideTooltip(name) {
+  clearTimeout(tooltipHideTimers[name]);
+}
+
+// Clear cache on refresh so stale data doesn't linger
+const _origLoadProjects = loadProjects;
+
+
+// ═══════════════════════════════════════════════════
+// COMMANDS
+// ═══════════════════════════════════════════════════
+const cmdState = {};  // repoName -> { commands: [], editing: bool }
+
+async function initCmds(name) {
+  if (cmdState[name]) { renderCmds(name); return; }
+  try {
+    const res = await fetch(`${API}/commands/${encodeURIComponent(name)}`);
+    const data = await res.json();
+    cmdState[name] = { commands: data.commands || [], editing: false };
+    renderCmds(name);
+  } catch { /* ignore */ }
+}
+
+function renderCmds(name) {
+  const state = cmdState[name];
+  if (!state) return;
+  const listEl = document.getElementById(`cmdlist-${name}`);
+  const editEl = document.getElementById(`cmdedit-${name}`);
+  if (!listEl || !editEl) return;
+
+  if (!state.editing) {
+    editEl.style.display = 'none';
+    if (!state.commands.length) {
+      listEl.innerHTML = `<div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);padding:2px 0">no commands — click edit to add</div>`;
+    } else {
+      listEl.innerHTML = state.commands.map((c, i) => `
+        <div class="cmd-run-row">
+          <button class="cmd-run-btn" id="cmdbtn-${esc(name)}-${i}" onclick="runCmd('${eA(name)}',${i})">
+            <svg class="cmd-play" width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+            <span class="cmd-label">${esc(c.label)}</span>
+            <span class="cmd-shell">${esc(c.cmd)}</span>
+          </button>
+        </div>`).join('');
+    }
+  } else {
+    listEl.innerHTML = '';
+    const rows = state.commands.map((c, i) => `
+      <div class="cmd-edit-row">
+        <input class="cmd-input cmd-input-label" placeholder="label" value="${esc(c.label)}"
+               oninput="cmdState['${eA(name)}'].commands[${i}].label=this.value">
+        <input class="cmd-input cmd-input-cmd" placeholder="npm test" value="${esc(c.cmd)}"
+               oninput="cmdState['${eA(name)}'].commands[${i}].cmd=this.value">
+        <button class="cmd-del-btn" onclick="cmdDelete('${eA(name)}',${i})">✕</button>
+      </div>`).join('');
+    editEl.innerHTML = rows +
+      `<button class="cmd-add-btn" onclick="cmdAdd('${eA(name)}')">+ add command</button>` +
+      `<button class="cmd-save-btn" onclick="saveCmds('${eA(name)}')">save</button>`;
+    editEl.style.display = 'block';
+  }
+}
+
+function toggleCmdEdit(name) {
+  if (!cmdState[name]) { initCmds(name); return; }
+  cmdState[name].editing = !cmdState[name].editing;
+  renderCmds(name);
+}
+
+function cmdAdd(name) {
+  cmdState[name].commands.push({ label: '', cmd: '' });
+  renderCmds(name);
+}
+
+function cmdDelete(name, idx) {
+  cmdState[name].commands.splice(idx, 1);
+  renderCmds(name);
+}
+
+async function saveCmds(name) {
+  const cmds = cmdState[name].commands.filter(c => c.label && c.cmd);
+  cmdState[name].commands = cmds;
+  try {
+    await fetch(`${API}/commands/${encodeURIComponent(name)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ commands: cmds }),
+    });
+    toast(`✓ Commands saved for ${name}`, 'ok');
+  } catch { toast('✗ Failed to save', 'err'); }
+  cmdState[name].editing = false;
+  renderCmds(name);
+}
+
+async function runCmd(name, idx) {
+  const state = cmdState[name];
+  if (!state) return;
+  const cmd = state.commands[idx];
+  if (!cmd) return;
+
+  const btn    = document.getElementById(`cmdbtn-${name}-${idx}`);
+  const outEl  = document.getElementById(`cmdout-${name}`);
+  const bodyEl = document.getElementById(`cmdout-body-${name}`);
+  const lblEl  = document.getElementById(`cmdout-label-${name}`);
+
+  if (btn) { btn.classList.add('running'); btn.disabled = true; }
+  if (outEl) outEl.classList.add('visible');
+  if (lblEl) lblEl.textContent = `$ ${cmd.cmd}`;
+  if (bodyEl) bodyEl.textContent = 'running…';
+  if (bodyEl) bodyEl.className = 'cmd-output-body';
+
+  try {
+    const res  = await fetch(`${API}/commands/${encodeURIComponent(name)}/run`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cmd: cmd.cmd }),
+    });
+    const data = await res.json();
+    if (bodyEl) {
+      bodyEl.textContent = data.output || '(no output)';
+      bodyEl.className   = `cmd-output-body ${data.success ? 'cmd-output-ok' : 'cmd-output-err'}`;
+    }
+    toast(data.success ? `✓ ${cmd.label}` : `✗ ${cmd.label} failed`, data.success ? 'ok' : 'err');
+  } catch (e) {
+    if (bodyEl) { bodyEl.textContent = e.message; bodyEl.className = 'cmd-output-body cmd-output-err'; }
+  } finally {
+    if (btn) { btn.classList.remove('running'); btn.disabled = false; }
+  }
+}
+
+function closeCmdOutput(name) {
+  const el = document.getElementById(`cmdout-${name}`);
+  if (el) el.classList.remove('visible');
+}
+
+// Load commands for all cards after grid renders
+function loadAllCmds() {
+  allProjects.forEach(p => { if (p.git) initCmds(p.name); });
 }
 
 // ═══════════════════════════════════════════════════

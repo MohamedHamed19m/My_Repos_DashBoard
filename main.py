@@ -6,6 +6,7 @@ from pydantic import BaseModel
 import os
 import subprocess
 import time
+import json
 from datetime import datetime
 from typing import Optional, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -486,6 +487,90 @@ def wt_default_suffix(name: str):
     counter    = max(0, len(worktrees) - 1)
     suffix     = datetime.now().strftime(f"fix-%b%d-%H%M-{counter}")
     return {"suffix": suffix}
+
+@app.get("/git/{name}/recent-files")
+def git_recent_files(name: str, depth: int = 5):
+    """Return files changed in the last N commits, with change type (M/A/D/R)."""
+    full_path = os.path.join(BASE_PATH, name)
+    if not os.path.isdir(os.path.join(full_path, ".git")):
+        return {"files": []}
+    out = run_git(["diff", "--name-status", f"HEAD~{depth}..HEAD"], full_path) or ""
+    if not out:
+        # Fewer than depth commits — diff from first commit
+        out = run_git(["diff", "--name-status", "--root", "HEAD"], full_path) or ""
+    files = []
+    seen = set()
+    for line in out.splitlines():
+        parts = line.split("\t", 1)
+        if len(parts) == 2:
+            status, path = parts[0][0], parts[1]  # M/A/D/R first char
+            if path not in seen:
+                seen.add(path)
+                files.append({"status": status, "path": path})
+    return {"files": files[:20]}  # cap at 20
+
+
+# ── COMMANDS ─────────────────────────────────────────────────────────────────
+COMMANDS_FILE = os.path.join(BASE_PATH, "commands.json")
+
+def load_commands() -> dict:
+    try:
+        if os.path.exists(COMMANDS_FILE):
+            with open(COMMANDS_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return {}
+
+def save_commands(data: dict):
+    with open(COMMANDS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+
+
+@app.get("/commands/{name}")
+def get_commands(name: str):
+    """Get saved commands for a repo."""
+    all_cmds = load_commands()
+    return {"commands": all_cmds.get(name, [])}
+
+
+class CommandsBody(BaseModel):
+    commands: list  # [{"label": str, "cmd": str}]
+
+@app.post("/commands/{name}")
+def set_commands(name: str, body: CommandsBody):
+    """Save commands for a repo."""
+    all_cmds = load_commands()
+    all_cmds[name] = body.commands
+    save_commands(all_cmds)
+    return {"success": True}
+
+
+class RunCommandBody(BaseModel):
+    cmd: str
+
+@app.post("/commands/{name}/run")
+def run_command(name: str, body: RunCommandBody):
+    """Run a shell command inside a repo directory."""
+    repo_path = os.path.join(BASE_PATH, name)
+    if not os.path.isdir(repo_path):
+        raise HTTPException(404, "Repo not found")
+    try:
+        result = subprocess.run(
+            body.cmd,
+            cwd=repo_path,
+            shell=True,
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        out = result.stdout or result.stderr or "(no output)"
+        return {"success": result.returncode == 0, "output": out, "returncode": result.returncode}
+    except subprocess.TimeoutExpired:
+        return {"success": False, "output": "Command timed out after 60s"}
+    except Exception as e:
+        return {"success": False, "output": str(e)}
+
 
 @app.get("/git/{name}/details")
 def get_git_details(name: str):
