@@ -16,6 +16,9 @@ from ..core.worktree_ops import get_git_info
 
 router = APIRouter(tags=["projects"])
 
+# Scratchpad storage directory
+SCRATCHPAD_DIR = os.path.join(BASE_PATH, ".my_dashboard", "repos")
+
 
 @router.get("/projects")
 def get_projects():
@@ -27,7 +30,20 @@ def get_projects():
 
     def process(name):
         full_path = os.path.join(BASE_PATH, name)
-        return {"name": name, "path": full_path, "git": get_git_info(full_path)}
+        result = {"name": name, "path": full_path, "git": get_git_info(full_path)}
+
+        # Check if scratchpad has content
+        scratchpad_file = os.path.join(SCRATCHPAD_DIR, name, "scratch.md")
+        result["hasScratchpad"] = False
+        if os.path.exists(scratchpad_file):
+            try:
+                with open(scratchpad_file, "r", encoding="utf-8") as f:
+                    content = f.read().strip()
+                    result["hasScratchpad"] = bool(content)
+            except Exception:
+                result["hasScratchpad"] = False
+
+        return result
 
     with ThreadPoolExecutor(max_workers=min(len(folders), 12)) as executor:
         projects = list(executor.map(process, folders))

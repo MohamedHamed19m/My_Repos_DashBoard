@@ -36,10 +36,16 @@ class MergeWTBody(BaseModel):
     delete_branch: bool = False
 
 
+class ScratchpadBody(BaseModel):
+    """Request body for saving scratchpad content."""
+    content: str
+
+
 __all__ = [
     "CommandsBody",
     "RunCommandBody",
     "CreateWT",
     "RemoveWTBody",
     "MergeWTBody",
+    "ScratchpadBody",
 ]

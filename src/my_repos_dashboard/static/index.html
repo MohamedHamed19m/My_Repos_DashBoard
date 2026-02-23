@@ -18,6 +18,7 @@
       --accent:    #4f8ef7;
       --green:     #3ecf8e;
       --yellow:    #f5c842;
+      --pink:      #f6adbd;
       --red:       #f25f5c;
       --purple:    #a78bfa;
       --cyan:      #22d3ee;
@@ -184,6 +185,68 @@
     .action-btn.wt-btn:hover { background: rgba(167,139,250,0.1); border-color: var(--purple); }
     .action-btn.git-btn { border-color: rgba(62,207,142,0.3); color: var(--green); }
     .action-btn.git-btn:hover { background: rgba(62,207,142,0.1); border-color: var(--green); }
+    .action-btn.scratchpad-btn { border-color: rgba(251,191,36,0.3); color: var(--yellow); }
+    .action-btn.scratchpad-btn:hover { background: rgba(251,191,36,0.1); border-color: var(--yellow); }
+    .action-btn-wrapper { position: relative; }
+    .card-icon-row { display: flex; gap: 10px; margin-top: 8px; align-items: center; }
+    .card-icon-wrapper { position: relative; display: inline-flex; }
+    .card-icon-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      color: var(--muted);
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s, background 0.15s;
+    }
+    .card-icon-btn:hover { background: var(--surface3); }
+    .card-icon-btn.notes-icon:hover { color: var(--yellow); }
+
+    /* Scratchpad indicator dot */
+    .scratchpad-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--yellow);
+      position: absolute; top: -2px; right: -2px;
+    }
+
+    /* Scratchpad modal */
+    .scratchpad-modal {
+      background: var(--surface); border: 1px solid var(--border2);
+      border-radius: 16px; width: 600px; max-width: 95vw;
+      max-height: 80vh; display: flex; flex-direction: column;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+      animation: modalIn 0.25s cubic-bezier(0.4,0,0.2,1);
+    }
+    .scratchpad-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 22px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .scratchpad-header h3 {
+      font-family: var(--mono); font-size: 0.85rem; color: #fff;
+    }
+    .scratchpad-header .close-btn {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 7px; color: var(--muted); width: 28px; height: 28px;
+      cursor: pointer; font-size: 0.9rem; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .scratchpad-header .close-btn:hover { color: #fff; border-color: var(--border2); }
+    #scratchpad-textarea {
+      flex: 1; min-height: 300px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px;
+      color: var(--text); font-family: var(--mono); font-size: 0.85rem;
+      resize: none; outline: none; margin: 20px 22px;
+    }
+    #scratchpad-textarea:focus { border-color: var(--accent); }
+    .scratchpad-footer {
+      padding: 0 22px 20px; display: flex; justify-content: flex-end;
+    }
+    .action-btn.primary { border-color: rgba(79,142,247,0.3); color: var(--accent); background: rgba(79,142,247,0.08); }
+    .action-btn.primary:hover { background: rgba(79,142,247,0.15); border-color: var(--accent); }
 
     /* ── WORKTREE MANAGER MODAL ── */
     .modal-overlay {
@@ -847,6 +910,20 @@
   </div>
 </div>
 
+<!-- ── SCRATCHPAD MODAL ── -->
+<div class="modal-overlay" id="scratchpad-overlay" onclick="if(event.target===this)closeScratchpad()">
+  <div class="scratchpad-modal">
+    <div class="scratchpad-header">
+      <h3>📝 Scratchpad — <span id="scratchpad-repo-name"></span></h3>
+      <button onclick="closeScratchpad()" class="close-btn">×</button>
+    </div>
+    <textarea id="scratchpad-textarea" placeholder="Quick notes about this repo..."></textarea>
+    <div class="scratchpad-footer">
+      <button onclick="saveScratchpad()" class="action-btn primary">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── README PANEL ── -->
 <div id="backdrop" onclick="closePanel()"></div>
 <div id="readme-panel">
@@ -1029,6 +1106,14 @@ function buildCard(p, i) {
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><line x1="6" y1="9" x2="6" y2="21"/></svg>
             git
           </button>` : ''}
+        </div>
+        <div class="card-icon-row">
+          <div class="card-icon-wrapper" title="Notes">
+            <button class="card-icon-btn notes-icon" onclick="openScratchpad('${eA(p.name)}')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            ${p.hasScratchpad ? '<div class="scratchpad-dot"></div>' : ''}
+          </div>
         </div>
       </div>
     </div>`;
@@ -1924,6 +2009,39 @@ function renderMarkdown(md) {
 }
 
 // ═══════════════════════════════════════════════════
+// SCRATCHPAD
+// ═══════════════════════════════════════════════════
+async function openScratchpad(name) {
+  const repo = document.getElementById('scratchpad-repo-name');
+  const textarea = document.getElementById('scratchpad-textarea');
+  repo.textContent = name;
+  const res = await fetch(`${API}/repo/${encodeURIComponent(name)}/scratchpad`);
+  const data = await res.json();
+  textarea.value = data.content || '';
+  textarea.dataset.repoName = name;
+  document.getElementById('scratchpad-overlay').classList.add('open');
+}
+
+async function saveScratchpad() {
+  const textarea = document.getElementById('scratchpad-textarea');
+  const name = textarea.dataset.repoName;
+  await fetch(`${API}/repo/${encodeURIComponent(name)}/scratchpad`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content: textarea.value })
+  });
+  toast('Scratchpad saved');
+  closeScratchpad();
+  loadProjects(); // Refresh to show indicator
+}
+
+function closeScratchpad() {
+  document.getElementById('scratchpad-overlay').classList.remove('open');
+}
+
+// ═══════════════════════════════════════════════════
+// CONTEXT CAPTURE
+// ═══════════════════════════════════════════════════
 // UTILS
 // ═══════════════════════════════════════════════════
 function esc(s)  { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -1952,6 +2070,8 @@ document.addEventListener('keydown', e => {
       closeGitModal();
     } else if (document.getElementById('stats-overlay').classList.contains('open')) {
       closeStatsModal();
+    } else if (document.getElementById('scratchpad-overlay').classList.contains('open')) {
+      closeScratchpad();
     } else {
       closePanel();
     }
