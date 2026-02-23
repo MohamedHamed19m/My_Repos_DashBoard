@@ -6,6 +6,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **Local Worktree Dashboard** - a web application for managing local Git repositories and Git worktrees. It consists of a FastAPI backend structured as a UV package, and a vanilla HTML/CSS/JS frontend (`static/index.html`) with a dark glassmorphism UI.
 
+## Project Purpose
+
+**This is a personal dashboard** - NOT intended for:
+- ❌ Global installation via `uv tool install`
+- ❌ Publishing to PyPI
+- ❌ Distribution as a package
+
+**UV is used ONLY for:**
+- ✅ Dependency management (`uv sync`, `uv add`)
+- ✅ Development workflow (`uv run`)
+- ✅ Clean project structure
+
+**Users should run the dashboard using:**
+- Windows: Double-click `start.bat` / `stop.bat` (or create shortcuts)
+- Development: `uv run my-repos-dashboard --reload`
+
 ## Package Structure
 
 ```

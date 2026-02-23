@@ -13,16 +13,14 @@ from fastapi.responses import JSONResponse
 # Load environment variables from .env
 load_dotenv()
 
-# Robust project root detection (works both installed and dev)
+# Static dir is now inside the package
 try:
-    # When installed as package
     import my_repos_dashboard
-    PROJECT_ROOT = Path(my_repos_dashboard.__file__).parent.parent.parent
+    STATIC_DIR = Path(my_repos_dashboard.__file__).parent / "static"
 except ImportError:
-    # When running from src/ during development
-    PROJECT_ROOT = Path(__file__).parent.parent.parent
+    # Dev fallback
+    STATIC_DIR = Path(__file__).parent.parent / "static"
 
-STATIC_DIR = PROJECT_ROOT / "static"
 BASE_PATH = os.getenv("REPO_BASE_PATH", r"C:\Users\user\Desktop\test\0_my_repo")
 COMMANDS_FILE = os.path.join(BASE_PATH, "commands.json")
 
