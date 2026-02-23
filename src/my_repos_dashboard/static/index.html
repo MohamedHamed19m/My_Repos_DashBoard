@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Worktree Dashboard</title>
+  <title>Repos Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Berkeley+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
@@ -114,6 +114,7 @@
       border-radius: 12px; overflow: hidden;
       transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
       animation: fadeUp 0.35s ease both;
+      display: flex; flex-direction: column;
     }
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(14px); }
@@ -124,7 +125,7 @@
     .status-clean .card-status-bar { background: var(--green); }
     .status-dirty .card-status-bar { background: linear-gradient(90deg, var(--yellow), var(--red)); }
     .status-nogit .card-status-bar { background: var(--border2); }
-    .card-body { padding: 15px 17px 13px; }
+    .card-body { padding: 15px 17px 13px; display: flex; flex-direction: column; flex: 1; }
     .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 9px; }
     .repo-name { font-family: var(--mono); font-size: 0.9rem; color: #fff; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .badge-row { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; flex-shrink: 0; }
@@ -170,7 +171,7 @@
     .wt-more { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); margin-top: 2px; }
 
     /* Card actions */
-    .card-actions { display: flex; gap: 6px; margin-top: 12px; }
+    .card-actions { display: flex; gap: 6px; margin-top: auto; padding-top: 12px; flex-wrap: wrap; }
     .action-btn {
       flex: 1; padding: 6px 8px; border-radius: 7px;
       border: 1px solid var(--border); background: var(--surface2);
@@ -188,7 +189,7 @@
     .action-btn.scratchpad-btn { border-color: rgba(251,191,36,0.3); color: var(--yellow); }
     .action-btn.scratchpad-btn:hover { background: rgba(251,191,36,0.1); border-color: var(--yellow); }
     .action-btn-wrapper { position: relative; }
-    .card-icon-row { display: flex; gap: 10px; margin-top: 8px; align-items: center; }
+    .card-icon-row { display: flex; gap: 10px; margin-top: 6px; margin-bottom: 4px; align-items: center; }
     .card-icon-wrapper { position: relative; display: inline-flex; }
     .card-icon-btn {
       background: none;
@@ -524,13 +525,18 @@
     .week-bar.this { background: var(--accent); }
     .week-bar.last { background: var(--border2); }
     .week-day-label { font-family: var(--mono); font-size: 0.52rem; color: var(--muted); }
-    .hour-wrap { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 10px 8px; }
-    .hour-grid { display: grid; grid-template-columns: repeat(24,1fr); gap: 3px; margin-bottom: 4px; }
-    .hour-cell { height: 20px; border-radius: 3px; position: relative; transition: transform 0.1s; cursor: default; }
-    .hour-cell:hover { transform: scaleY(1.2); z-index: 2; }
-    .hour-cell:hover::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); background: var(--surface3); border: 1px solid var(--border2); padding: 2px 6px; border-radius: 4px; font-family: var(--mono); font-size: 0.58rem; color: var(--text); white-space: nowrap; pointer-events: none; z-index: 20; }
-    .hour-labels { display: grid; grid-template-columns: repeat(24,1fr); gap: 3px; }
-    .hour-label { font-family: var(--mono); font-size: 0.45rem; color: var(--muted); text-align: center; }
+    /* ── Hour-of-day bar chart ── */
+    .hour-wrap { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 14px 14px 10px; }
+    .hour-zones { display: flex; gap: 2px; margin-bottom: 6px; }
+    .hour-zone-label { font-family: var(--mono); font-size: 0.52rem; color: var(--muted); text-align: center; flex: 1; }
+    .hour-bars-wrap { display: flex; align-items: flex-end; gap: 2px; height: 60px; }
+    .hour-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; height: 100%; justify-content: flex-end; position: relative; }
+    .hour-bar-fill { width: 100%; border-radius: 2px 2px 0 0; min-height: 2px; transition: opacity 0.15s; cursor: default; }
+    .hour-bar-fill:hover { opacity: 0.75; }
+    .hour-bar-fill:hover::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: var(--surface3); border: 1px solid var(--border2); padding: 3px 7px; border-radius: 4px; font-family: var(--mono); font-size: 0.58rem; color: var(--text); white-space: nowrap; pointer-events: none; z-index: 20; }
+    .hour-bar-label { font-family: var(--mono); font-size: 0.42rem; color: var(--muted); text-align: center; }
+    .hour-zone-divider { display: flex; gap: 2px; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); }
+    .hour-zone-tag { flex: 1; text-align: center; font-family: var(--mono); font-size: 0.48rem; color: var(--muted); }
     .activity-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 6px; overflow: hidden; }
     .activity-item:last-child { margin-bottom: 0; }
     .activity-main { display: flex; align-items: center; gap: 10px; padding: 9px 12px; font-family: var(--mono); font-size: 0.72rem; }
@@ -765,7 +771,7 @@
   <div class="logo">
     <div class="logo-icon">⌥</div>
     <div>
-      <div class="logo-text">worktree</div>
+      <div class="logo-text">repos</div>
       <div class="logo-sub">local repo dashboard</div>
     </div>
   </div>
@@ -795,7 +801,7 @@
   <button class="filter-btn active" data-filter="all">all</button>
   <button class="filter-btn" data-filter="dirty">dirty</button>
   <button class="filter-btn" data-filter="clean">clean</button>
-  <button class="filter-btn" data-filter="worktrees">has worktrees</button>
+  <button class="filter-btn" data-filter="worktrees">worktrees</button>
   <button class="filter-btn" data-filter="nogit">no git</button>
 </div>
 
@@ -1056,7 +1062,15 @@ function buildCard(p, i) {
     <div class="commands-section" id="cmds-${esc(p.name)}">
       <div class="commands-header">
         <span class="commands-label">⚡ commands</span>
-        <button class="cmd-edit-toggle" onclick="toggleCmdEdit('${eA(p.name)}')">edit</button>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="card-icon-wrapper" title="Notes">
+            <button class="card-icon-btn notes-icon" onclick="openScratchpad('${eA(p.name)}')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            ${p.hasScratchpad ? '<div class="scratchpad-dot"></div>' : ''}
+          </div>
+          <button class="cmd-edit-toggle" onclick="toggleCmdEdit('${eA(p.name)}')">edit</button>
+        </div>
       </div>
       <div class="cmd-run-list" id="cmdlist-${esc(p.name)}">
         <div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);padding:2px 0">
@@ -1084,6 +1098,7 @@ function buildCard(p, i) {
         ${diffStats}
         ${wtPreview}
         ${cmdsHtml}
+
         <div class="card-actions">
           <button class="action-btn primary" onclick="openVSCode('${eA(p.name)}')">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
@@ -1106,14 +1121,6 @@ function buildCard(p, i) {
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><line x1="6" y1="9" x2="6" y2="21"/></svg>
             git
           </button>` : ''}
-        </div>
-        <div class="card-icon-row">
-          <div class="card-icon-wrapper" title="Notes">
-            <button class="card-icon-btn notes-icon" onclick="openScratchpad('${eA(p.name)}')">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </button>
-            ${p.hasScratchpad ? '<div class="scratchpad-dot"></div>' : ''}
-          </div>
         </div>
       </div>
     </div>`;
@@ -1899,29 +1906,41 @@ function renderStats(data) {
       </div>`;
   }
 
-  // ── 5. Hour-of-day heatmap ───────────────────────────────────────────────────
+  // ── 5. Hour-of-day bar chart ─────────────────────────────────────────────────
   if (data.hour_distribution) {
     const maxH = Math.max(...data.hour_distribution.map(h => h.count), 1);
+    // Color zones: night=purple, morning=yellow, afternoon=green, evening=blue
+    const zoneColor = (hour) => {
+      if (hour < 6)  return 'rgba(167,139,250,';   // night - purple
+      if (hour < 12) return 'rgba(251,191,36,';     // morning - yellow
+      if (hour < 18) return 'rgba(62,207,142,';     // afternoon - green
+      return 'rgba(79,142,247,';                    // evening - blue
+    };
+    const hourLabel = h => h === 0 ? '12a' : h < 12 ? `${h}a` : h === 12 ? '12p' : `${h-12}p`;
     html += `
       <div class="stats-section">
         <div class="stats-section-title">🕐 when you commit (hour of day)</div>
         <div class="hour-wrap">
-          <div class="hour-grid">
+          <div class="hour-bars-wrap">
             ${data.hour_distribution.map(h => {
-              const intensity = h.count / maxH;
-              const alpha     = h.count === 0 ? 0.06 : 0.15 + intensity * 0.85;
-              const label     = h.hour === 0 ? '12a' : h.hour < 12 ? `${h.hour}a` : h.hour === 12 ? '12p' : `${h.hour-12}p`;
-              return `<div class="hour-cell"
-                style="background:rgba(79,142,247,${alpha.toFixed(2)})"
-                data-tip="${label}: ${h.count} commit${h.count!==1?'s':''}"></div>`;
+              const pct = h.count / maxH;
+              const alpha = h.count === 0 ? 0.07 : 0.25 + pct * 0.75;
+              const heightPct = h.count === 0 ? 4 : Math.max(Math.round(pct * 100), 6);
+              const color = zoneColor(h.hour);
+              const show = h.hour % 3 === 0;
+              return `<div class="hour-bar-col">
+                <div class="hour-bar-fill" style="height:${heightPct}%;background:${color}${alpha.toFixed(2)})" data-tip="${hourLabel(h.hour)}: ${h.count} commit${h.count!==1?'s':''}"></div>
+              </div>`;
             }).join('')}
           </div>
-          <div class="hour-labels">
-            ${data.hour_distribution.map(h => {
-              const show = h.hour % 3 === 0;
-              const label = h.hour === 0 ? '12a' : h.hour < 12 ? `${h.hour}a` : h.hour === 12 ? '12p' : `${h.hour-12}p`;
-              return `<div class="hour-label">${show ? label : ''}</div>`;
-            }).join('')}
+          <div class="hour-zone-divider">
+            <div class="hour-zone-tag" style="color:rgba(167,139,250,0.7);flex:6">🌙 night</div>
+            <div class="hour-zone-tag" style="color:rgba(251,191,36,0.7);flex:6">☀️ morning</div>
+            <div class="hour-zone-tag" style="color:rgba(62,207,142,0.7);flex:6">🌤️ afternoon</div>
+            <div class="hour-zone-tag" style="color:rgba(79,142,247,0.7);flex:6">🌆 evening</div>
+          </div>
+          <div style="display:flex;gap:2px;margin-top:4px">
+            ${data.hour_distribution.map(h => `<div style="flex:1;font-family:var(--mono);font-size:0.42rem;color:var(--muted);text-align:center">${h.hour % 6 === 0 ? hourLabel(h.hour) : ''}</div>`).join('')}
           </div>
         </div>
       </div>`;
