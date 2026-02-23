@@ -48,6 +48,7 @@ The server runs on `http://127.0.0.1:8000` by default.
 | `GET /projects` | Scan BASE_PATH and return all repos with Git info |
 | `GET /stats` | Get advanced statistics (top repos with sparklines, current/longest streaks, hourly heatmap, week-over-week comparison, uncommitted health) |
 | `GET /open/{name}` | Open a repo in VS Code |
+| `GET /open-terminal/{name}` | Open a PowerShell terminal in the repo directory |
 | `GET /open-worktree?path=` | Open a worktree path in VS Code |
 | `GET /readme/{name}` | Fetch README.md content |
 | `POST /git/{name}/{action}` | Run git commands (pull, fetch, stash, stash-pop, reset, clean) |
@@ -71,7 +72,7 @@ Single-file application with embedded CSS and JavaScript:
 - **No build step**: Direct browser-compatible code
 
 **Key UI components:**
-- Project grid with Git status badges, worktree preview, action buttons
+- Project grid with Git status badges, worktree preview, action buttons (VS Code, Terminal, README)
 - Recent files tooltip on hover (shows files changed in last 5 commits)
 - Custom commands panel per repo (edit and run repo-specific commands)
 - Worktree Manager modal with create/remove/merge functionality
