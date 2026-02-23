@@ -4,42 +4,99 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a **Local Worktree Dashboard** - a web application for managing local Git repositories and Git worktrees. It consists of a FastAPI backend (`main.py`) serving as a Git operations API, and a vanilla HTML/CSS/JS frontend (`index.html`) with a dark glassmorphism UI.
+This is a **Local Worktree Dashboard** - a web application for managing local Git repositories and Git worktrees. It consists of a FastAPI backend structured as a UV package, and a vanilla HTML/CSS/JS frontend (`static/index.html`) with a dark glassmorphism UI.
+
+## Package Structure
+
+```
+my-repos-dashboard/
+├── pyproject.toml                          # UV package config
+├── .env                                    # Environment variables (REPO_BASE_PATH)
+├── README.md
+├── CLAUDE.md
+├── start.bat                               # Start server in background
+├── stop.bat                                # Stop running server
+├── restart.bat                             # Restart server
+├── status.bat                              # Check server status
+├── start_hidden.vbs                        # Helper: run command completely hidden
+├── .dashboard.pid                          # Auto-generated: stores server PID
+├── dashboard.log                           # Auto-generated: server logs
+│
+├── src/
+│   └── my_repos_dashboard/
+│       ├── __init__.py
+│       ├── __main__.py                     # Entry point for `uv run my-repos-dashboard`
+│       ├── main.py                         # FastAPI app factory + entry point
+│       │
+│       ├── api/                            # Route handlers grouped by feature
+│       │   ├── __init__.py
+│       │   ├── projects.py                 # /projects, /stats
+│       │   ├── actions.py                  # /open/*, /readme/*, /git/{action}
+│       │   ├── git.py                      # /git/* (log, branches, recent-files, details)
+│       │   ├── worktrees.py                # /wt/* endpoints
+│       │   └── commands.py                 # /commands/* endpoints
+│       │
+│       ├── core/                           # Shared business logic
+│       │   ├── __init__.py
+│       │   ├── git_utils.py                # run_git, run_git_out, get_branch_sha
+│       │   ├── worktree_ops.py             # get_merge_status, get_worktrees_for_repo
+│       │   └── config.py                   # BASE_PATH from .env, settings, exception handler
+│       │
+│       └── models/                         # Pydantic schemas
+│           ├── __init__.py
+│           └── schemas.py                  # All request/response models
+│
+├── static/                                 # Frontend assets
+│   └── index.html                          # HTML+CSS+JS
+│
+└── docs/                                   # Documentation
+    └── image/
+        └── dashboard.png
+```
 
 ## Running the Application
 
-**Recommended: Use the Python launcher**
-```bash
-python start.py
-```
-This script handles:
-1. Starting the uvicorn server (prefers `uv run`, falls back to `uvicorn`)
-2. Waiting for the server to be ready
-3. Opening the dashboard in the browser
-4. Graceful shutdown on Ctrl+C
+### Windows Scripts (Recommended)
 
-**Windows:**
-```cmd
-start.bat
-```
+Double-click these batch files to manage the server:
 
-**Manual server start (for development with auto-reload):**
+| Script | Action | Window Behavior |
+|--------|--------|-----------------|
+| `start.bat` | Start server in background | Shows status for ~3 seconds, closes automatically |
+| `stop.bat` | Stop running server | Shows status for ~2 seconds, closes automatically |
+| `restart.bat` | Restart server (stop + start) | Shows status, closes when done |
+| `status.bat` | Check if server is running | Keeps window open until you press a key |
+
+**How it works:**
+- `start.bat` runs the server completely in the background using VBScript (`start_hidden.vbs`)
+- Server PID is stored in `.dashboard.pid` for reliable stopping
+- Logs are written to `dashboard.log` for debugging
+- Server runs continuously even after closing the launcher window
+- `stop.bat` kills ALL Python processes (aggressive but reliable)
+
+### Using UV Command Line
+
 ```bash
-uv run --with fastapi --with uvicorn uvicorn main:app --reload
-# Or if uvicorn is installed directly:
-uvicorn main:app --reload
+# Install dependencies
+uv sync
+
+# Start server with auto-reload (development)
+uv run my-repos-dashboard --reload
+
+# Or using uvicorn directly
+uv run uvicorn my_repos_dashboard.main:app --reload
 ```
 
 The server runs on `http://127.0.0.1:8000` by default.
 
 ## Architecture
 
-### Backend (`main.py`)
+### Backend (UV Package Structure)
 
-- **FastAPI app** with CORS enabled for all origins
-- **`BASE_PATH`**: Hardcoded path to the parent directory containing repos to scan (line 33)
-- **Git utilities**: `run_git()`, `run_git_out()`, `get_branch_sha()`, `get_merge_status()`
-- **Worktree logic**: Mirrors a separate `wtm.py` tool's logic for merge status (FRESH/MERGED/NOT MERGED)
+**FastAPI app** with CORS enabled for all origins
+- **`REPO_BASE_PATH`**: Loaded from `.env` file - path to the directory containing repos to scan
+- **Git utilities** (`core/git_utils.py`): `run_git()`, `run_git_out()`, `get_branch_sha()`, `get_worktree_age()`
+- **Worktree logic** (`core/worktree_ops.py`): Mirrors a separate `wtm.py` tool's logic for merge status (FRESH/MERGED/NOT MERGED)
 - **ThreadPoolExecutor**: Used for parallel repo scanning (max 12 workers)
 
 **Key endpoints:**
@@ -88,14 +145,22 @@ Single-file application with embedded CSS and JavaScript:
 
 ### Launcher Scripts
 
-- **`start.py`**: Cross-platform launcher with server health checking
-- **`start.bat`**: Windows-only batch launcher
+**Server Management Scripts:**
+- **`start.bat`**: Creates venv if needed, starts server in background via VBScript, saves PID for stopping
+- **`stop.bat`**: Kills all Python processes to stop the server, removes PID file
+- **`restart.bat`**: Calls stop.bat then start.bat for quick restart
+- **`status.bat`**: Shows if dashboard is running with PID, URL, and log file location
+- **`start_hidden.vbs`**: Helper script that runs the server completely hidden (no window)
+
+**Auto-generated Files:**
+- **`.dashboard.pid`**: Stores the server's process ID for reliable stopping
+- **`dashboard.log`**: Server output/logs for debugging
 
 ## Development Notes
 
-- **Dependencies**: `fastapi`, `uvicorn`. Use `uv` for managed dependencies, or install directly with pip.
-- **No frontend build process**: Edit `index.html` directly and refresh the browser.
-- **BASE_PATH configuration**: Update `BASE_PATH` in `main.py` line 33 to scan a different directory.
+- **Dependencies**: `fastapi`, `uvicorn`, `python-dotenv`. Managed via `uv` - see `pyproject.toml`.
+- **No frontend build process**: Edit `static/index.html` directly and refresh the browser.
+- **REPO_BASE_PATH configuration**: Edit `.env` file at project root to change the directory to scan.
 - **Git worktree merge status**: The `get_merge_status()` function determines if a worktree's branch is FRESH (no divergence), MERGED (commits exist in parent), or NOT MERGED (unique commits).
 - **Git commands modal**: The git button opens a modal with safe operations (history, branches, pull) and dangerous operations (force reset, force clean). The branches endpoint returns up to 5 latest branches with current branch highlighting.
 - **Recent files tooltip**: Uses `git diff --name-status HEAD~5..HEAD` to get files changed in last 5 commits. Lazy-loaded on first hover and cached per session.

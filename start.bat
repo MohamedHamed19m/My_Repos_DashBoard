@@ -1,44 +1,71 @@
 @echo off
-REM Worktree Dashboard Launcher
+REM My Repos Dashboard Launcher - Starts server in hidden background
 setlocal
 set "DIR=%~dp0"
 set "DIR=%DIR:~0,-1%"
+set "PID_FILE=%DIR%\.dashboard.pid"
 
 echo.
-echo   Worktree Dashboard
-echo   ==================
+echo   My Repos Dashboard
+echo   ===================
 echo.
 
-REM Check if uv is available, fall back to plain uvicorn
-where uv >nul 2>&1
-if %ERRORLEVEL% == 0 (
-    echo [1/3] Starting backend with uv...
-    start /B uv run --with fastapi --with uvicorn uvicorn main:app --app-dir "%DIR%" --host 127.0.0.1 --port 8000 > "%DIR%\server.log" 2>&1
-) else (
-    echo [1/3] Starting backend with uvicorn...
-    start /B uvicorn main:app --app-dir "%DIR%" --host 127.0.0.1 --port 8000 > "%DIR%\server.log" 2>&1
+REM Check if .venv exists, if not create it
+if not exist "%DIR%\.venv" (
+    echo No virtual environment found. Creating one...
+    cd /d "%DIR%"
+    uv venv
+    if errorlevel 1 (
+        echo.
+        echo Failed to create virtual environment!
+        ping 127.0.0.1 -n 4 >nul
+        exit
+    )
 )
 
-REM Wait for server to be ready (poll instead of fixed sleep)
-echo [2/3] Waiting for server...
-:WAIT_LOOP
-timeout /t 1 /nobreak >nul
-curl -s http://127.0.0.1:8000/projects >nul 2>&1
-if %ERRORLEVEL% NEQ 0 goto WAIT_LOOP
+REM Check if already running
+if exist "%PID_FILE%" (
+    set /p DASH_PID=<"%PID_FILE%"
+    tasklist /FI "PID eq %DASH_PID%" 2>nul | find /I /N "python.exe">nul
+    if not errorlevel 1 (
+        echo   Dashboard is already running! PID: %DASH_PID%
+        echo   Use stop.bat to stop it first.
+        ping 127.0.0.1 -n 4 >nul
+        exit
+    )
+    del "%PID_FILE%" 2>nul
+)
 
-echo        Server ready on http://127.0.0.1:8000
+REM Start the server using VBScript (completely hidden)
+echo   Starting dashboard in background...
+echo   Server: http://127.0.0.1:8000
+echo   Log file: %DIR%\dashboard.log
 echo.
 
-REM Open dashboard
-echo [3/3] Opening dashboard...
-start "" "%DIR%\index.html"
-echo        Done!
-echo.
-echo   Press any key to stop the server and exit.
-echo.
+start "" wscript.exe "%DIR%\start_hidden.vbs"
 
-pause >nul
+REM Wait for server to start and capture PID
+ping 127.0.0.1 -n 4 >nul
 
-REM Kill uvicorn on exit
-taskkill /F /IM uvicorn.exe >nul 2>&1
-echo   Server stopped.
+REM Find the PID and save it
+for /f "tokens=2" %%a in ('tasklist ^| findstr /i "python.exe"') do (
+    set "DASH_PID=%%a"
+    goto :found_pid
+)
+
+:found_pid
+if defined DASH_PID (
+    echo %DASH_PID% > "%PID_FILE%"
+    echo   Started! PID: %DASH_PID%
+    echo   Use stop.bat to stop the server.
+) else (
+    echo   Warning: Could not determine PID.
+    echo   Check dashboard.log for errors.
+)
+
+echo.
+echo   Server is running in BACKGROUND.
+echo   You can close this window safely.
+echo.
+ping 127.0.0.1 -n 3 >nul
+exit

@@ -32,6 +32,56 @@ The main dashboard interface displaying the project grid with glassmorphism desi
 
 ## 🚦 Getting Started
 
-1. **Start the Backend:**
+1. **Clone and navigate to the project:**
    ```bash
-   uv run --with fastapi --with uvicorn uvicorn main:app --reload
+   cd my-repos-dashboard
+   ```
+
+2. **Configure your repository path:**
+   Edit `.env` file and set `REPO_BASE_PATH` to your projects directory:
+   ```env
+   REPO_BASE_PATH=C:\Users\user\Desktop\test\0_my_repo
+   ```
+
+3. **Install dependencies and start the server:**
+   ```bash
+   # Using uv (recommended)
+   uv sync
+   uv run my-repos-dashboard
+
+   # Or with auto-reload for development
+   uv run my-repos-dashboard --reload
+
+   # Or using uvicorn directly
+   uv run uvicorn my_repos_dashboard.main:app --reload
+   ```
+
+4. **Windows users:** Double-click `start.bat` to launch the dashboard.
+
+## 🛑 Server Management (Windows)
+
+The dashboard comes with easy-to-use batch scripts:
+
+| Script | Action |
+|--------|--------|
+| `start.bat` | Start dashboard in background (closes window automatically) |
+| `stop.bat` | Stop any running dashboard server |
+| `restart.bat` | Quick restart (stop + start) |
+| `status.bat` | Check if dashboard is running |
+
+**Double-click any of these files to run them.**
+
+### How It Works
+- `start.bat` runs the server in the background and closes the window
+- A log file is created at `dashboard.log` for debugging
+- The server's PID is stored in `.dashboard.pid` for easy stopping
+- `stop.bat` uses the PID (or searches for the process) to stop the server cleanly
+
+### Manual Control (Terminal)
+```bash
+# Start with auto-reload
+uv run my-repos-dashboard --reload
+
+# Stop with Ctrl+C when running in foreground
+# Or use stop.bat when running in background
+```

@@ -1,0 +1,31 @@
+INFO:     Will watch for changes in these directories: ['C:\\Users\\user\\Desktop\\test\\0_my_repo\\my-repos-dashboard']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [24940] using WatchFiles
+INFO:     Started server process [9360]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:60658 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60658 - "GET /projects HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60658 - "GET /commands/My_Repos_DashBoard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63542 - "GET /commands/CAPL-Testing-Library HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59007 - "GET /commands/CAPL_SomeIP_Examples HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59948 - "GET /commands/Vectr-CAPL-Dll-CMake HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53911 - "GET /commands/SHE_MemoryUpdate_CPP HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60658 - "GET /commands/open-secoc-lab HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50583 - "GET /commands/Coding-dev-toolkit HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59007 - "GET /commands/py_vreport HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63542 - "GET /commands/modern-cpp-modular-project HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59948 - "GET /commands/Virtual-HIL-Framework HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53911 - "GET /commands/CAPL_Linter HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60658 - "GET /commands/CANoe_MCP HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50583 - "GET /commands/CAPL-Doc-Extractor HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63542 - "GET /commands/old_Gemini_Tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59007 - "GET /commands/Gemini_Tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59948 - "GET /commands/CAPL_Parser HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53911 - "GET /commands/agent-gh-hub HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50583 - "GET /commands/worktree-commands HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60658 - "GET /commands/Conductor-Worktree-Extension HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63542 - "GET /commands/local_temp HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59007 - "GET /commands/Skill_GEMINI_Extension HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53911 - "GET /commands/capl_docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59948 - "GET /commands/py_canoe HTTP/1.1" 200 OK
