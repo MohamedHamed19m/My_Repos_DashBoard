@@ -167,6 +167,32 @@ Single-file application with embedded CSS and JavaScript:
 - **Custom commands storage**: Stored in `BASE_PATH/commands.json` as `{"repo-name": [{"label": "test", "cmd": "npm test"}]}`. Commands run in the repo directory with output captured and displayed.
 - **Advanced stats metrics**: The `/stats` endpoint calculates streaks (consecutive commit days), hourly distribution for heatmap, week-over-week comparison (last 7 days vs previous 7 days), and uncommitted work health (dirty repos with file counts).
 
+### IMPORTANT: When Modifying `start_hidden.vbs`
+
+**CRITICAL RULE:** Always use `uv run my-repos-dashboard` - NEVER call `.venv` executables directly.
+
+```vbscript
+' ✅ CORRECT - Use UV commands
+command = "cmd /c cd /d """ & scriptDir & """ && uv run my-repos-dashboard --reload --host 127.0.0.1 --port 8000 > """ & logFile & """ 2>&1"
+
+' ❌ WRONG - Don't use .venv directly
+' command = "cmd /c cd /d """ & scriptDir & """ && .venv\Scripts\python.exe -m uvicorn ..."
+```
+
+**Why?**
+- UV manages the virtual environment automatically
+- Direct `.venv` calls break when UV restructures the environment
+- UV handles dependency resolution and package execution correctly
+- This prevents "No module named uv" and similar import errors
+
+### Server Startup Troubleshooting
+
+If `start.bat` doesn't work:
+1. Check `dashboard.log` for errors: `type dashboard.log`
+2. Verify UV is in PATH: `uv --version`
+3. Ensure `.env` exists with valid `REPO_BASE_PATH`
+4. Delete stale `.dashboard.pid` and retry
+
 ## Testing Changes
 
 After backend changes, the server auto-reloads if started with `--reload`. For frontend changes, simply refresh the browser (hard refresh if needed: Ctrl+Shift+R).

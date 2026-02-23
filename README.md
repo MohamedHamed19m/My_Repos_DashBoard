@@ -85,3 +85,16 @@ uv run my-repos-dashboard --reload
 # Stop with Ctrl+C when running in foreground
 # Or use stop.bat when running in background
 ```
+
+### Troubleshooting
+
+**Server won't start?**
+1. Check the log file for errors: `type dashboard.log`
+2. Ensure `uv` is installed and in your PATH: `uv --version`
+3. Verify `.env` file exists with correct `REPO_BASE_PATH`
+4. If stuck, delete `.dashboard.pid` and try `start.bat` again
+
+**Important:**
+- Always use `uv run my-repos-dashboard` to start the server (not `uvicorn` directly)
+- The `start_hidden.vbs` helper must use UV commands - never call `.venv` executables directly
+- UV manages the virtual environment automatically
