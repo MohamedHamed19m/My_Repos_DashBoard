@@ -541,7 +541,7 @@ def wt_default_suffix(name: str):
     return {"suffix": suffix}
 
 @app.get("/git/{name}/recent-files")
-def git_recent_files(name: str, depth: int = 5):
+def git_recent_files(name: str, depth: int = 1):
     """Return files changed in the last N commits, with change type (M/A/D/R)."""
     full_path = os.path.join(BASE_PATH, name)
     if not os.path.isdir(os.path.join(full_path, ".git")):

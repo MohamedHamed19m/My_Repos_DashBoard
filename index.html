@@ -496,17 +496,24 @@
       position: absolute;
       top: calc(100% + 6px);
       left: 0;
-      z-index: 200;
+      z-index: 1000;
       background: var(--surface2);
       border: 1px solid var(--border2);
       border-radius: 9px;
       padding: 10px 0;
       min-width: 280px;
       max-width: 360px;
-      max-height: 135px;
+      max-height: 200px;
       overflow-y: auto;
       box-shadow: 0 8px 32px rgba(0,0,0,0.6);
       animation: tooltipIn 0.15s ease;
+      box-sizing: border-box;
+      scrollbar-gutter: stable;
+    }
+    .files-tooltip ul, 
+    .files-tooltip div {
+      padding-bottom: 10px; 
+      margin: 0;
     }
     @keyframes tooltipIn {
       from { opacity:0; transform:translateY(-4px); }
@@ -935,7 +942,7 @@ function buildCard(p, i) {
       <div class="files-tooltip" id="ftip-${esc(p.name)}"
            onmouseenter="cancelHideTooltip('${eA(p.name)}')"
            onmouseleave="scheduleHideTooltip('${eA(p.name)}')">
-        <div class="tooltip-header">recently changed files (last 5 commits)</div>
+        <div class="tooltip-header">recently changed files (last commit)</div>
         <div class="tooltip-loading"><div class="spinner" style="width:12px;height:12px;border-width:1.5px"></div> loading…</div>
       </div>
     </div>` : '';
@@ -1357,7 +1364,7 @@ function renderFilesTooltip(name, files) {
       <span class="file-path"><span class="file-dir">${esc(dir)}</span>${esc(fname)}</span>
     </div>`;
   }).join('');
-  tip.innerHTML = `<div class="tooltip-header">recently changed files (last 5 commits)</div>${rows}`;
+  tip.innerHTML = `<div class="tooltip-header">recently changed files (last commit)</div>${rows}`;
 }
 
 function scheduleHideTooltip(name) {
