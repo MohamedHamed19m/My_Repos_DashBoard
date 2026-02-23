@@ -254,6 +254,13 @@ def open_vscode(name: str):
     return {"message": f"Opening {name}"}
 
 
+@app.get("/open-terminal/{name}")
+def open_terminal(name: str):
+    full_path = os.path.join(BASE_PATH, name)
+    subprocess.Popen(["start", "powershell", "-NoExit", "-Command", f"Set-Location '{full_path}'"], shell=True)
+    return {"message": f"Opening terminal in {name}"}
+
+
 @app.get("/open-worktree")
 def open_worktree_path(path: str):
     subprocess.Popen(["code", path], shell=True)
