@@ -127,7 +127,15 @@
     .status-nogit .card-status-bar { background: var(--border2); }
     .card-body { padding: 15px 17px 13px; display: flex; flex-direction: column; flex: 1; }
     .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 9px; }
-    .repo-name { font-family: var(--mono); font-size: 0.9rem; color: #fff; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .repo-name { font-family: var(--mono); font-size: 0.9rem; color: #fff; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
+    .pin-btn {
+      background: transparent; border: none;
+      font-size: 0.9rem; cursor: pointer;
+      opacity: 0.4; transition: opacity 0.15s;
+      flex-shrink: 0;
+    }
+    .pin-btn:hover { opacity: 1; }
+    .card[data-pinned="true"] .pin-btn { opacity: 1; }
     .badge-row { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; flex-shrink: 0; }
     .badge { font-family: var(--mono); font-size: 0.58rem; padding: 2px 7px; border-radius: 4px; font-weight: 700; white-space: nowrap; }
     .badge-branch  { background: rgba(79,142,247,0.12);  color: var(--accent);  border: 1px solid rgba(79,142,247,0.25); }
@@ -803,6 +811,7 @@
   <button class="filter-btn" data-filter="clean">clean</button>
   <button class="filter-btn" data-filter="worktrees">worktrees</button>
   <button class="filter-btn" data-filter="nogit">no git</button>
+  <button class="filter-btn" data-filter="pinned">pinned</button>
 </div>
 
 <main>
@@ -945,6 +954,7 @@
 <script>
 const API = 'http://127.0.0.1:8000';
 let allProjects = [];
+let pinnedRepos = new Set();
 let activeFilter = 'all';
 let wtRepoName = '';      // which repo the modal is open for
 let wtData = [];          // cached worktree list for modal
@@ -955,6 +965,16 @@ let gitRepoName = '';      // which repo the git modal is open for
 // ═══════════════════════════════════════════════════
 // DASHBOARD LOAD
 // ═══════════════════════════════════════════════════
+async function loadPinnedRepos() {
+  try {
+    const res = await fetch(`${API}/pinned`);
+    const data = await res.json();
+    pinnedRepos = new Set(data.pinned || []);
+  } catch (e) {
+    pinnedRepos = new Set();
+  }
+}
+
 async function loadProjects() {
   // Clear file cache so hover data is fresh
   Object.keys(fileCache).forEach(k => delete fileCache[k]);
@@ -962,6 +982,7 @@ async function loadProjects() {
   btn.classList.add('spinning');
   document.getElementById('grid').innerHTML = `<div class="loading"><div class="spinner"></div> loading repos…</div>`;
   try {
+    await loadPinnedRepos();
     const res = await fetch(`${API}/projects`);
     const data = await res.json();
     allProjects = data.projects;
@@ -989,6 +1010,7 @@ function renderGrid() {
   if (activeFilter === 'clean')     projects = projects.filter(p => p.git && !p.git.is_dirty);
   if (activeFilter === 'worktrees') projects = projects.filter(p => (p.git?.worktrees?.length || 0) > 1);
   if (activeFilter === 'nogit')     projects = projects.filter(p => !p.git);
+  if (activeFilter === 'pinned')    projects = projects.filter(p => p.isPinned);
 
   const grid = document.getElementById('grid');
   if (!projects.length) { grid.innerHTML = `<div class="empty">no repos match</div>`; return; }
@@ -1001,6 +1023,9 @@ function buildCard(p, i) {
   const g = p.git;
   const statusClass = !g ? 'status-nogit' : (g.is_dirty ? 'status-dirty' : 'status-clean');
   const delay = Math.min(i * 35, 380);
+
+  const pinIcon = p.isPinned ? '📌' : '📍';
+  const pinBtn = `<button class="pin-btn" onclick="togglePin('${eA(p.name)}')" title="${p.isPinned ? 'Unpin repo' : 'Pin repo'}">${pinIcon}</button>`;
 
   let badges = '';
   if (g) {
@@ -1087,11 +1112,11 @@ function buildCard(p, i) {
       </div>
     </div>`;
   return `
-    <div class="card ${statusClass}" style="animation-delay:${delay}ms">
+    <div class="card ${statusClass}" data-pinned="${p.isPinned ? 'true' : 'false'}" style="animation-delay:${delay}ms">
       <div class="card-status-bar"></div>
       <div class="card-body">
         <div class="card-top">
-          <div class="repo-name">${esc(p.name)}</div>
+          <div class="repo-name">${pinBtn}${esc(p.name)}</div>
           <div class="badge-row">${badges}</div>
         </div>
         ${commitLine}
@@ -1124,6 +1149,25 @@ function buildCard(p, i) {
         </div>
       </div>
     </div>`;
+}
+
+// ═══════════════════════════════════════════════════
+// PINNED REPOS
+// ═══════════════════════════════════════════════════
+async function togglePin(repoName) {
+  try {
+    const res = await fetch(`${API}/pinned/${encodeURIComponent(repoName)}`, { method: 'POST' });
+    if (res.ok) {
+      await loadPinnedRepos();
+      await loadProjects();
+      const isPinned = pinnedRepos.has(repoName);
+      showToast(`${repoName} ${isPinned ? 'pinned' : 'unpinned'}`);
+    } else {
+      showToast('Failed to toggle pin status');
+    }
+  } catch (e) {
+    showToast('Failed to toggle pin status');
+  }
 }
 
 // ═══════════════════════════════════════════════════

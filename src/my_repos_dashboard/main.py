@@ -13,7 +13,7 @@ from fastapi.responses import FileResponse
 from .core.config import app, STATIC_DIR
 
 # Import all routers (no circular imports - routers don't import main)
-from .api import projects, actions, git, worktrees, commands, context
+from .api import projects, actions, git, worktrees, commands, context, pinned
 
 # Include all routers
 app.include_router(projects.router)
@@ -22,6 +22,7 @@ app.include_router(git.router)
 app.include_router(worktrees.router)
 app.include_router(commands.router)
 app.include_router(context.router)
+app.include_router(pinned.router)
 
 # Mount static files
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")

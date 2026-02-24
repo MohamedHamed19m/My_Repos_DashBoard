@@ -23,6 +23,7 @@ except ImportError:
 
 BASE_PATH = os.getenv("REPO_BASE_PATH", r"C:\Users\user\Desktop\test\0_my_repo")
 COMMANDS_FILE = os.path.join(BASE_PATH, "commands.json")
+PINNED_FILE = os.path.join(BASE_PATH, ".my_dashboard", "pinned_repos.json")
 
 
 # Create FastAPI app instance
@@ -51,5 +52,6 @@ __all__ = [
     "STATIC_DIR",
     "BASE_PATH",
     "COMMANDS_FILE",
+    "PINNED_FILE",
     "app",
 ]

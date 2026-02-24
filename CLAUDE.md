@@ -50,7 +50,8 @@ my-repos-dashboard/
 │       │   ├── actions.py                  # /open/*, /readme/*, /git/{action}
 │       │   ├── git.py                      # /git/* (log, branches, recent-files, details)
 │       │   ├── worktrees.py                # /wt/* endpoints
-│       │   └── commands.py                 # /commands/* endpoints
+│       │   ├── commands.py                 # /commands/* endpoints
+│       │   └── pinned.py                   # /pinned/* endpoints
 │       │
 │       ├── core/                           # Shared business logic
 │       │   ├── __init__.py
@@ -136,6 +137,8 @@ The server runs on `http://127.0.0.1:8000` by default.
 | `POST /wt/{name}/create` | Create new worktree + branch |
 | `POST /wt/{name}/remove` | Remove worktree (optionally delete branch) |
 | `POST /wt/{name}/merge` | Merge worktree branch into parent |
+| `GET /pinned` | Get list of pinned repos |
+| `POST /pinned/{name}` | Toggle pin status for a repo |
 
 ### Frontend (`index.html`)
 
@@ -146,6 +149,7 @@ Single-file application with embedded CSS and JavaScript:
 
 **Key UI components:**
 - Project grid with Git status badges, worktree preview, action buttons (VS Code, Terminal, README)
+- Pin/unpin repos with 📍/📌 icons (pinned repos sort to top)
 - Recent files tooltip on hover (shows files changed in last 5 commits)
 - Custom commands panel per repo (edit and run repo-specific commands)
 - Worktree Manager modal with create/remove/merge functionality
@@ -181,6 +185,7 @@ Single-file application with embedded CSS and JavaScript:
 - **Git commands modal**: The git button opens a modal with safe operations (history, branches, pull) and dangerous operations (force reset, force clean). The branches endpoint returns up to 5 latest branches with current branch highlighting.
 - **Recent files tooltip**: Uses `git diff --name-status HEAD~5..HEAD` to get files changed in last 5 commits. Lazy-loaded on first hover and cached per session.
 - **Custom commands storage**: Stored in `BASE_PATH/commands.json` as `{"repo-name": [{"label": "test", "cmd": "npm test"}]}`. Commands run in the repo directory with output captured and displayed.
+- **Pinned repos storage**: Stored in `BASE_PATH/.my_dashboard/pinned_repos.json` as `{"pinned": ["repo-name-1", "repo-name-2"]}`. Pinned repos appear first in the grid and can be filtered via the "pinned" filter button.
 - **Advanced stats metrics**: The `/stats` endpoint calculates streaks (consecutive commit days), hourly distribution for heatmap, week-over-week comparison (last 7 days vs previous 7 days), and uncommitted work health (dirty repos with file counts).
 
 ### IMPORTANT: When Modifying `start_hidden.vbs`

@@ -4,6 +4,7 @@ A lightweight, self-hosted web dashboard to manage local repositories and workfl
 
 ## 🚀 Features
 - **Project Grid:** Auto-scans your project directory with Git status badges.
+- **Pin Repositories:** Pin important repos to keep them at the top of the grid (📍/📌 icons).
 - **Direct Launch:** Open any project in VS Code or PowerShell terminal with a single click.
 - **Git Actions:** History, branches, pull, force reset, force clean — all in one modal.
 - **Worktree Manager:** Create, remove, and merge Git worktrees with visual status.

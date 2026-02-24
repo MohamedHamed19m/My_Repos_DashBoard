@@ -13,6 +13,7 @@ from fastapi import APIRouter
 from ..core.config import BASE_PATH
 from ..core.git_utils import run_git
 from ..core.worktree_ops import get_git_info
+from .pinned import load_pinned
 
 router = APIRouter(tags=["projects"])
 
@@ -27,6 +28,9 @@ def get_projects():
         f for f in os.listdir(BASE_PATH)
         if os.path.isdir(os.path.join(BASE_PATH, f)) and f != "my-dashboard"
     ]
+
+    # Load pinned repos for filtering and sorting
+    pinned = load_pinned()
 
     def process(name):
         full_path = os.path.join(BASE_PATH, name)
@@ -43,12 +47,20 @@ def get_projects():
             except Exception:
                 result["hasScratchpad"] = False
 
+        # Check if repo is pinned
+        result["isPinned"] = name in pinned
+
         return result
 
     with ThreadPoolExecutor(max_workers=min(len(folders), 12)) as executor:
         projects = list(executor.map(process, folders))
 
-    projects.sort(key=lambda p: p["git"]["last_ts"] if p["git"] else 0, reverse=True)
+    # Sort: pinned repos first, then by last_ts (most recent first)
+    projects.sort(key=lambda p: (
+        not p.get("isPinned", False),  # Pinned repos first (False sorts after True)
+        p["git"]["last_ts"] if p["git"] else 0  # Then by timestamp (reverse)
+    ), reverse=True)
+
     return {"projects": projects}
 
 
